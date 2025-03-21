@@ -852,6 +852,13 @@ class Webhook_API {
 	 * @return string|false Branch name or false if not found.
 	 */
 	protected function get_payload_vcs_branch( $payload ) {
+
+		// Ensure we have an array to work with
+		$payload = is_string($payload) ? json_decode($payload, true) : $payload;
+		if (!is_array($payload)) {
+			return false;
+		}
+		
 		$branch = false;
 
 		if (
