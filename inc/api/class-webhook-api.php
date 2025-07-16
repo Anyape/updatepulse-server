@@ -303,6 +303,12 @@ class Webhook_API {
 						continue;
 					}
 
+					if ( function_exists( 'gzdeflate' ) ) {
+						$body = base64_encode( gzdeflate( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					} elseif ( function_exists( 'gzcompress' ) ) {
+						$body = base64_encode( gzcompress( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					}
+
 					Scheduler::get_instance()->schedule_single_action( time(), $hook, $params );
 				}
 			}
@@ -321,6 +327,20 @@ class Webhook_API {
 	 * @return array|WP_Error HTTP response or WP_Error on failure.
 	 */
 	public function fire_webhook( $url, $secret, $body, $action ) {
+
+		if ( function_exists( 'gzinflate' ) ) {
+			$body = gzinflate( base64_decode( $body ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		} elseif ( function_exists( 'gzuncompress' ) ) {
+			$body = gzuncompress( base64_decode( $body ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		}
+
+		if ( ! $body ) {
+			return new WP_Error(
+				__METHOD__,
+				__( 'Failed to decompress the webhook body.', 'updatepulse-server' )
+			);
+		}
+
 		return wp_remote_post(
 			$url,
 			array(
