@@ -352,6 +352,17 @@ class Licenses_Table extends WP_List_Table {
 	}
 
 	/**
+	 * No items message
+	 *
+	 * Display a message and a button when no items are found
+	 *
+	 * @since 1.0.11
+	 */
+	public function no_items() {
+		print '<div class="no-items"><p>' . esc_html( __( 'No items found.', 'updatepulse-server' ) ) . '</p><p><input id="add_license_trigger" type="button" value="' . esc_html( __( 'Add License', 'updatepulse-server' ) ) . '" class="button button-primary open-panel"></p></div>';
+	}
+
+	/**
 	 * Get bulk actions
 	 *
 	 * Define available bulk actions for the table

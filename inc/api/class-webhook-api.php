@@ -333,10 +333,15 @@ class Webhook_API {
 	public function fire_webhook( $url, $secret, $body, $action ) {
 		$pristine_body = $body;
 
+		// check if the body is base64-encoded compressed data, and if so, decode and decompress it before sending the request
+		if ( base64_encode( base64_decode( $body, true ) ) === $body ) { // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode, WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			$body = base64_decode( $body, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		}
+
 		if ( function_exists( 'gzinflate' ) ) {
-			$body = gzinflate( base64_decode( $body ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			$body = gzinflate( $body );
 		} elseif ( function_exists( 'gzuncompress' ) ) {
-			$body = gzuncompress( base64_decode( $body ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			$body = gzuncompress( $body );
 		}
 
 		if ( ! $body ) {

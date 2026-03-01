@@ -138,6 +138,12 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.0.11 =
+* Fix issue [Add License Button missing from Licenses tab](https://github.com/Anyape/updatepulse-server/issues/9)
+* Fix `Webhook_API::fire_webhook` method to handle base64-encoded compressed payloads
+* Fix missing `upserv_deactivate_license_payload` hook in `License_API` class
+* Fix issue [Reactivation blocked after reinstalling plugin or website](https://github.com/Anyape/updatepulse-server/issues/8)
+
 = 1.0.10 =
 * Introduce constant `PUC_FORCE_BRANCH` to bypass tags & releases in VCS detection strategies
 * Minor fix
