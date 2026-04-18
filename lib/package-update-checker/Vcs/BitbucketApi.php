@@ -13,18 +13,13 @@ if ( ! class_exists( BitbucketApi::class, false ) ) :
 	class BitbucketApi extends Api {
 
 		/**
-		 * @var string Bitbucket app password. Optional.
-		 */
-		protected $app_password;
-
-		/**
 		 * BitbucketApi constructor.
 		 *
 		 * @param string $repository_url The URL of the Bitbucket repository.
-		 * @param string|null $app_password Optional. The Bitbucket app password.
+		 * @param string|null $credentials Optional. The Bitbucket credentials (email and API token) in the format "email:token".
 		 * @throws \InvalidArgumentException If the repository URL is invalid.
 		 */
-		public function __construct( $repository_url, $app_password = null ) {
+		public function __construct( $repository_url, $credentials = null ) {
 			$path = wp_parse_url( $repository_url, PHP_URL_PATH );
 
 			if ( preg_match( '@^/?(?P<user_name>[^/]+?)/(?P<repository>[^/#?&]+?)/?$@', $path, $matches ) ) {
@@ -36,23 +31,27 @@ if ( ! class_exists( BitbucketApi::class, false ) ) :
 				);
 			}
 
-			parent::__construct( $repository_url, $app_password );
+			parent::__construct( $repository_url, $credentials );
 		}
 
 		/**
 		 * Check if the VCS is accessible.
 		 *
 		 * @param string $url The URL to test.
-		 * @param string|null $app_password Optional. The Bitbucket app password.
+		 * @param string|null $credentials Optional. The Bitbucket credentials (email and API token) in the format "email:token".
 		 * @return bool|WP_Error True if accessible, WP_Error otherwise.
 		 */
-		public static function test( $url, $app_password = null ) {
-			$instance = new self( $url . 'bogus/', $app_password );
+		public static function test( $url, $credentials = null ) {
+			$instance = new self( $url . 'bogus/', $credentials );
 			$endpoint = 'https://api.bitbucket.org/2.0/user';
 			$response = $instance->api( $endpoint, '2.0', true );
 
 			if ( is_wp_error( $response ) ) {
 				return $response;
+			}
+
+			if ( ! $response ) {
+				return false;
 			}
 
 			if (
@@ -281,8 +280,31 @@ if ( ! class_exists( BitbucketApi::class, false ) ) :
 				return $document;
 			}
 
-			if ( $override_url ) {
-				$response       = json_decode( $body );
+			if ( 401 === $code || 403 === $code || 400 === $code ) {
+				$error = new WP_Error(
+					'puc-bitbucket-authentication-error',
+					sprintf( 'Authentication failed for Bitbucket API. Base URL: "%s". HTTP status code: %d.', $url, $code )
+				);
+
+				do_action( 'puc_api_error', $error, $response, $url, $this->slug );
+
+				return false;
+			}
+
+			if ( $override_url && ! empty( $body ) ) {
+				$response = json_decode( $body );
+
+				if ( ! is_object( $response ) ) {
+					$error = new WP_Error(
+						'puc-bitbucket-invalid-response',
+						sprintf( 'Invalid response from Bitbucket API. Base URL: "%s". HTTP status code: %d.', $url, $code )
+					);
+
+					do_action( 'puc_api_error', $error, $response, $url, $this->slug );
+
+					return false;
+				}
+
 				$response->code = $code;
 
 				return $response;
@@ -299,24 +321,13 @@ if ( ! class_exists( BitbucketApi::class, false ) ) :
 		}
 
 		/**
-		 * Set authentication credentials.
-		 *
-		 * @param array|string $credentials The authentication credentials.
-		 */
-		public function set_authentication( $credentials ) {
-			parent::set_authentication( $credentials );
-
-			$this->app_password = is_string( $credentials ) ? $credentials : null;
-		}
-
-		/**
 		 * Generate the value of the "Authorization" header.
 		 *
 		 * @return array The authorization headers.
 		 */
 		public function get_authorization_headers() {
 			return array(
-				'Authorization' => 'Basic ' . base64_encode( $this->user_name . ':' . $this->app_password ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				'Authorization' => 'Basic ' . base64_encode( $this->credentials ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			);
 		}
 	}

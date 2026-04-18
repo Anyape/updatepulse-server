@@ -3,7 +3,7 @@
  * Plugin Name: UpdatePulse Server
  * Plugin URI: https://github.com/anyape/updatepulse-server/
  * Description: Run your own update server.
- * Version: 1.0.11
+ * Version: 1.0.12
  * Author: Alexandre Froger
  * Author URI: https://froger.me/
  * License: GPLv2 or later

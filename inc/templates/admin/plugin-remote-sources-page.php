@@ -129,8 +129,13 @@
 						<p class="description">
 							<?php esc_html_e( 'Credentials for non-publicly accessible repositories.', 'updatepulse-server' ); ?>
 							<br>
-							<!-- In the case of Github and Gitlab, a Personal Access Token; in the case of Bitckucket, an App Password.<br/>**WARNING: Keep these credentials secret, do not share them, and take care of renewing them before they expire!** -->
-							<?php esc_html_e( 'In the case of Github and Gitlab, a Personal Access Token (PAT); in the case of Bitckucket, an App Password.', 'updatepulse-server' ); ?>
+							<?php
+							printf(
+								// translators: %s is <code>email@domain.com:API_TOKEN_WITH SCOPE</code>
+								esc_html__( 'In the case of Github and Gitlab, a Personal Access Token (PAT); in the case of Bitckucket, the Bitbucket account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
+								'<code>email@domain.com:API_TOKEN_WITH SCOPE</code>'
+							);
+							?>
 							<br>
 							<strong><?php esc_html_e( 'WARNING: Keep these credentials secret, do not share them, and take care of renewing them before they expire!', 'updatepulse-server' ); ?></strong>
 						</p>
