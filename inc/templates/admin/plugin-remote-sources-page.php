@@ -133,7 +133,7 @@
 							printf(
 								// translators: %s is <code>email@domain.com:API_TOKEN_WITH SCOPE</code>
 								esc_html__( 'In the case of Github and Gitlab, a Personal Access Token (PAT); in the case of Bitckucket, the Bitbucket account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
-								'<code>email@domain.com:API_TOKEN_WITH SCOPE</code>'
+								'<code>email@domain.com:API_TOKEN_WITH_SCOPE</code>'
 							);
 							?>
 							<br>
