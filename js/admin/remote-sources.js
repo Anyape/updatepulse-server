@@ -5,7 +5,7 @@ jQuery(document).ready(function ($) {
     }
 
     var form = $('.form-container.package-source');
-    var inputElements = form.find('input[type="checkbox"][data-prop], input[type="text"][data-prop], input[type="number"][data-prop], input[type="password"][data-prop], input[type="hidden"][data-prop], select[data-prop]');
+    var inputElements = form.find('input[type="checkbox"][data-prop], input[type="radio"][data-prop], input[type="text"][data-prop], input[type="number"][data-prop], input[type="password"][data-prop], input[type="hidden"][data-prop], select[data-prop]');
     var inputTextElements = form.find('input[type="text"][data-prop], input[type="number"][data-prop], input[type="password"][data-prop]');
     var data = $('#upserv_vcs').val() ? JSON.parse($('#upserv_vcs').val()) : {};
 
@@ -54,6 +54,8 @@ jQuery(document).ready(function ($) {
             var prop = elem.data('prop');
 
             if (elem.is('input[type="checkbox"]')) {
+                data[id][prop] = 0;
+            } else if (elem.is('input[type="radio"]')) {
                 data[id][prop] = 0;
             } else if (elem.is('select')) {
                 data[id][prop] = elem.find('option[value="daily"]').length > 0 ? 'daily' : elem.find('option').first().val();
@@ -108,6 +110,12 @@ jQuery(document).ready(function ($) {
 
             if (elem.is('input[type="checkbox"]')) {
                 elem.prop('checked', ['1', 'true', 'yes', 'on', 1, true].includes(value));
+            } else if (elem.is('input[type="radio"]')) {
+                var checked = ['1', 'true', 'yes', 'on', 1, true].includes(value);
+                if (prop == 'self_hosted') {
+                    checked = checked && (data[id]['type'] == elem.val());
+                }
+                elem.prop('checked', checked);
             } else if (elem.is('input[type="number"]')) {
                 elem.val(value ? parseInt(value) : 0);
             } else {
@@ -129,11 +137,13 @@ jQuery(document).ready(function ($) {
 
         if (elem.is('input[type="checkbox"]')) {
             value = elem.prop('checked') ? '1' : '0';
+        } else if (elem.is('input[type="radio"]') && elem.prop('checked')) {
+            value = elem.val();
         } else {
             value = elem.val();
         }
 
-        if (data[id]) {
+        if (value !== null && data[id]) {
             data[id][prop] = value;
         }
 
@@ -160,12 +170,9 @@ jQuery(document).ready(function ($) {
         }
 
         var id = $('.vcs .item.selected').attr('id');
-        var checked = elem.prop('checked')
-
-        $('.self-hosted').prop('checked', false);
-        elem.prop('checked', checked);
-
-        data[id].type = checked ? elem.val() : 'undefined';
+        var value = $('.self-hosted input[type="radio"]:checked').val();
+        if (typeof value === 'undefined') value = 'undefined';
+        data[id].type = value;
     };
     var updateService = function (id) {
         var service = data[id].url.match(/https?:\/\/([^\/]+)\//);
@@ -186,6 +193,10 @@ jQuery(document).ready(function ($) {
             data[id].type = 'bitbucket';
             data[id].self_hosted = false;
             item.find('.service .bitbucket').removeClass('hidden');
+        } else if (service && service[1] === 'gitea.com') {
+            data[id].type = 'gitea';
+            data[id].self_hosted = false;
+            item.find('.service .gitea').removeClass('hidden');
         } else {
             data[id].type = data[id].type ? data[id].type : 'undefined';
             data[id].self_hosted = true;

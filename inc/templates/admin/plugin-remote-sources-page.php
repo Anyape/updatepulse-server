@@ -15,7 +15,7 @@
 					<p class="description">
 						<?php esc_html_e( 'Enables this server to download plugins, themes and generic packages from a Version Control System before delivering updates.', 'updatepulse-server' ); ?>
 						<br>
-						<?php esc_html_e( 'Supports Bitbucket, Github and Gitlab.', 'updatepulse-server' ); ?>
+						<?php esc_html_e( 'Supports Bitbucket, Github, Gitlab and Gitea.', 'updatepulse-server' ); ?>
 						<br>
 						<?php
 						printf(
@@ -48,7 +48,9 @@
 					<span class="github hidden"><i class="fa-brands fa-github"></i><?php esc_html_e( 'Github', 'updatepulse-server' ); ?></span>
 					<span class="bitbucket hidden"><i class="fa-brands fa-bitbucket"></i><?php esc_html_e( 'Bitbucket', 'updatepulse-server' ); ?></span>
 					<span class="gitlab hidden"><i class="fa-brands fa-gitlab"></i><?php esc_html_e( 'Gitlab', 'updatepulse-server' ); ?></span>
-					<span class="self-hosted-gitlab hidden"><i class="fa-brands fa-square-gitlab"></i><?php esc_html_e( 'Self-hosted', 'updatepulse-server' ); ?></span>
+					<span class="gitea hidden"><i class="fa-solid fa-mug-saucer"></i><?php esc_html_e( 'Gitea', 'updatepulse-server' ); ?></span>
+					<span class="self-hosted-gitlab hidden"><i class="fa-brands fa-square-gitlab"></i><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></span>
+					<span class="self-hosted-gitea hidden"><i class="fa-regular fa-mug-saucer"></i><?php esc_html_e( 'Self-hosted Gitea', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-undefined hidden"><i class="fa-solid fa-question"></i><?php esc_html_e( 'Unknown', 'updatepulse-server' ); ?></span>
 				</div>
 				<div class="info hidden">
@@ -71,7 +73,7 @@
 							<?php
 							printf(
 								// translators: %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
-								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
+								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github or Gitea, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
 								'<code>https://version-control-system.tld/identifier/</code>',
 								'<code>identifier</code>'
 							);
@@ -89,14 +91,25 @@
 						<input type="hidden" class="vcs-setting" id="upserv_vcs_type" data-prop="type" value="undefined">
 					</td>
 				</tr>
-				<tr class="self-hosted">
+				<tr class="self-hosted self-hosted-gitlab">
 					<th>
-						<label for="upserv_vcs_self_hosted"><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></label>
+						<label for="upserv_vcs_self_hosted_gitlab"><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></label>
 					</th>
 					<td>
-						<input class="vcs-setting" type="checkbox" id="upserv_vcs_self_hosted_gitlab" data-prop="self_hosted" value="gitlab">
+						<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitlab" name="self_hosted" data-prop="self_hosted" value="gitlab">
 						<p class="description">
 							<?php esc_html_e( 'Check this only if the Version Control System is a self-hosted instance of Gitlab.', 'updatepulse-server' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr class="self-hosted self-hosted-gitea">
+					<th>
+						<label for="upserv_vcs_self_hosted_gitea"><?php esc_html_e( 'Self-hosted Gitea', 'updatepulse-server' ); ?></label>
+					</th>
+					<td>
+						<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitea" name="self_hosted" data-prop="self_hosted" value="gitea">
+						<p class="description">
+							<?php esc_html_e( 'Check this only if the Version Control System is a self-hosted instance of Gitea.', 'updatepulse-server' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -132,7 +145,7 @@
 							<?php
 							printf(
 								// translators: %s is <code>email@domain.com:API_TOKEN_WITH SCOPE</code>
-								esc_html__( 'In the case of Github and Gitlab, a Personal Access Token (PAT); in the case of Bitckucket, the Bitbucket account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
+								esc_html__( 'In the case of Github, Gitlab and Gitea, a Personal Access Token (PAT); in the case of Bitckucket, the Bitbucket account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
 								'<code>email@domain.com:API_TOKEN_WITH_SCOPE</code>'
 							);
 							?>
@@ -285,7 +298,7 @@
 							<?php
 							printf(
 								// translators: %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
-								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
+								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github, Gitea or a self-hosted instance of Gitea, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
 								'<code>https://version-control-system.tld/identifier/</code>',
 								'<code>identifier</code>'
 							);
