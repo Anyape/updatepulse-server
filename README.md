@@ -1,33 +1,33 @@
 # UpdatePulse Server - Run your own update server
 
-* [UpdatePulse Server - Run your own update server](#updatepulse-server---run-your-own-update-server)
-	* [Introduction](#introduction)
-		* [Overview](#overview)
-		* [Special Thanks](#special-thanks)
-		* [Compatibility](#compatibility)
-		* [Screenshots](#screenshots)
-			* [Packages Overview](#packages-overview)
-			* [Version Control Systems](#version-control-systems)
-			* [Licenses](#licenses)
-			* [API \& Webhooks](#api--webhooks)
-			* [Client - plugin screens](#client---plugin-screens)
-			* [Client - theme screens](#client---theme-screens)
-			* [Client - updates screen](#client---updates-screen)
-	* [User Interface](#user-interface)
-		* [Packages Overview](#packages-overview-1)
-		* [Version Control Systems](#version-control-systems-1)
-		* [Licenses](#licenses-1)
-		* [API \& Webhooks](#api--webhooks-1)
-	* [Performances](#performances)
-		* [Benchmark](#benchmark)
-		* [Update API](#update-api)
-		* [Public License API](#public-license-api)
-	* [Help](#help)
-		* [Registering packages with a Version Control System](#registering-packages-with-a-version-control-system)
-		* [Provide updates with UpdatePulse Server - packages requirements](#provide-updates-with-updatepulse-server---packages-requirements)
-		* [Scheduled tasks optimisation](#scheduled-tasks-optimisation)
-		* [Requests optimisation](#requests-optimisation)
-		* [More help...](#more-help)
+- [UpdatePulse Server - Run your own update server](#updatepulse-server---run-your-own-update-server)
+	- [Introduction](#introduction)
+		- [Overview](#overview)
+		- [Special Thanks](#special-thanks)
+		- [Compatibility](#compatibility)
+		- [Screenshots](#screenshots)
+			- [Packages Overview](#packages-overview)
+			- [Version Control Systems](#version-control-systems)
+			- [Licenses](#licenses)
+			- [API \& Webhooks](#api--webhooks)
+			- [Client - plugin screens](#client---plugin-screens)
+			- [Client - theme screens](#client---theme-screens)
+			- [Client - updates screen](#client---updates-screen)
+	- [User Interface](#user-interface)
+		- [Packages Overview](#packages-overview-1)
+		- [Version Control Systems](#version-control-systems-1)
+		- [Licenses](#licenses-1)
+		- [API \& Webhooks](#api--webhooks-1)
+	- [Performances](#performances)
+		- [Benchmark](#benchmark)
+		- [Update API](#update-api)
+		- [Public License API](#public-license-api)
+	- [Help](#help)
+		- [Registering packages with a Version Control System](#registering-packages-with-a-version-control-system)
+		- [Provide updates with UpdatePulse Server - packages requirements](#provide-updates-with-updatepulse-server---packages-requirements)
+		- [Scheduled tasks optimisation](#scheduled-tasks-optimisation)
+		- [Requests optimisation](#requests-optimisation)
+		- [More help...](#more-help)
 
 
 Developer documentation:
@@ -168,7 +168,7 @@ In case Webhooks are not used, the following actions are available to forcefully
 ### Licenses
 
 This tab allows administrators to:
-- Entirely enable/disable package licenses. **It affects all the packages with a "Requires License" license status delivered by UpdatePulse Server.**
+- Entirely enable/disable package licenses. **It affects all the packages with a "Require License" license status delivered by UpdatePulse Server.**
 - View the list of licenses currently stored by UpdatePulse Server, with License Key, Registered Email, Status, Package Type (Plugin or Theme), Package Slug, Creation Date, Expiration Date, ID
 - Add a license
 - Edit a license

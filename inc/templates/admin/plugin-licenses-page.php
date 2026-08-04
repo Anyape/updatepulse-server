@@ -186,7 +186,7 @@
 					<p class="description">
 						<?php esc_html_e( 'Check to activate license checking when delivering package updates.', 'updatepulse-server' ); ?>
 						<br>
-						<strong><?php esc_html_e( 'It affects all the packages with a "Requires License" license status delivered by this installation of UpdatePulse Server.', 'updatepulse-server' ); ?></strong>
+						<strong><?php esc_html_e( 'It affects all the packages with a "Require License" license status delivered by this installation of UpdatePulse Server.', 'updatepulse-server' ); ?></strong>
 					</p>
 				</td>
 			</tr>
