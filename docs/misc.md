@@ -592,7 +592,7 @@ Return accessible, decorative SVG markup for an UpdatePulse-supported VCS brand.
 **Parameters**
 
 `$brand`
-> (string) one of `github`, `gitlab`, `gitlab-self-hosted`, `gitea`, or `bitbucket`
+> (string) one of `github`, `gitlab`, `gitlab-self-hosted`, `gitea`, `forgejo`, `gitee`, or `bitbucket`
 
 **Return value**
 > (string) SVG markup for a supported brand, or an empty string when the brand is unsupported

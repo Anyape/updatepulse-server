@@ -393,12 +393,6 @@ msgstr ""
 msgid "Check this if you wish to use a Cloud Storage Service - S3 Compatible."
 msgstr ""
 
-#: inc/templates/admin/plugin-remote-sources-page.php:99
-msgid ""
-"Check this only if the Version Control System is a self-hosted instance of "
-"Gitlab."
-msgstr ""
-
 #: inc/templates/admin/plugin-licenses-page.php:187
 msgid "Check to activate license checking when delivering package updates."
 msgstr ""
@@ -821,7 +815,24 @@ msgid "Github"
 msgstr ""
 
 #: functions.php:48
+#: inc/templates/admin/plugin-remote-sources-page.php:103
 msgid "GitLab"
+msgstr ""
+
+#: functions.php:51
+#: inc/templates/admin/plugin-remote-sources-page.php:51
+#: inc/templates/admin/plugin-remote-sources-page.php:108
+msgid "Gitea"
+msgstr ""
+
+#: functions.php:54
+#: inc/templates/admin/plugin-remote-sources-page.php:113
+msgid "Forgejo"
+msgstr ""
+
+#: functions.php:56
+#: inc/templates/admin/plugin-remote-sources-page.php:52
+msgid "Gitee"
 msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:50
@@ -954,10 +965,13 @@ msgid ""
 "zip archive - for example, the main plugin file in %1$s would be %2$s."
 msgstr ""
 
-#: inc/templates/admin/plugin-remote-sources-page.php:124
+#. translators: %s is <code>email@domain.com:API_TOKEN_WITH SCOPE</code>
+#: inc/templates/admin/plugin-remote-sources-page.php:153
+#, php-format
 msgid ""
-"In the case of Github and Gitlab, a Personal Access Token (PAT); in the case "
-"of Bitbucket, an App Password."
+"For GitHub, GitLab, Gitea, Forgejo and Gitee, use a Personal Access Token "
+"(PAT); for Bitbucket, use the account email and an API token with scopes "
+"formatted like %s."
 msgstr ""
 
 #. %1$s is <code>updatepulse.json</code>, %2$s is <code>server</code>, %3$s is <code>https://sub.domain.tld/</code>
@@ -1266,15 +1280,14 @@ msgid ""
 "configuration to avoid branch conflicts."
 msgstr ""
 
-#. %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
-#: inc/templates/admin/plugin-remote-sources-page.php:74
-#: inc/templates/admin/plugin-remote-sources-page.php:274
+#. translators: %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
+#: inc/templates/admin/plugin-remote-sources-page.php:78
+#: inc/templates/admin/plugin-remote-sources-page.php:306
 #, php-format
 msgid ""
-"Must follow the following pattern: %1$s where %2$s is the user or the "
-"organisation name in case of Github, is the workspace name in case of "
-"Bitbucket, and is a group in case of Gitlab or a self-hosted instance of "
-"Gitlab (no support for Gitlab subgroups)."
+"Must follow the following pattern: %1$s where %2$s is the user or "
+"organisation name for GitHub, Gitea, Forgejo or Gitee, the workspace name "
+"for Bitbucket, and a group for GitLab (no support for GitLab subgroups)."
 msgstr ""
 
 #: inc/class-utils.php:170 inc/templates/admin/licenses-table-row.php:70
@@ -1677,6 +1690,19 @@ msgstr ""
 msgid "Self-hosted Gitlab"
 msgstr ""
 
+#: inc/templates/admin/plugin-remote-sources-page.php:55
+msgid "Self-hosted Forgejo"
+msgstr ""
+
+#: inc/templates/admin/plugin-remote-sources-page.php:97
+#: inc/templates/admin/plugin-remote-sources-page.php:100
+msgid "Self-hosted provider"
+msgstr ""
+
+#: inc/templates/admin/plugin-remote-sources-page.php:116
+msgid "Select the provider used by this self-hosted Version Control System."
+msgstr ""
+
 #: inc/templates/admin/cloud-storage-options.php:93
 msgid "Send a test request to the Cloud Storage Service."
 msgstr ""
@@ -1714,7 +1740,7 @@ msgid ""
 msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:18
-msgid "Supports Bitbucket, Github and Gitlab."
+msgid "Supports Bitbucket, GitHub, GitLab, Gitea, Forgejo and Gitee."
 msgstr ""
 
 #: inc/templates/admin/cloud-storage-options.php:88
@@ -2203,6 +2229,10 @@ msgstr ""
 msgid "Unauthorized GET method."
 msgstr ""
 
+#: inc/manager/class-remote-sources-manager.php:369
+msgid "Unsupported Version Control System provider."
+msgstr ""
+
 #: inc/manager/class-zip-package-manager.php:109
 msgid "Unavailable file system."
 msgstr ""
@@ -2214,6 +2244,18 @@ msgstr ""
 #. %d is the index of the item in the list
 #: inc/manager/class-remote-sources-manager.php:601
 msgid "Undefined VCS Type for item at index %d"
+msgstr ""
+
+#. translators: %d is the index of the item in the list.
+#: inc/manager/class-remote-sources-manager.php:814
+#, php-format
+msgid "Forgejo must be configured as self-hosted for item at index %d"
+msgstr ""
+
+#. translators: %d is the index of the item in the list.
+#: inc/manager/class-remote-sources-manager.php:824
+#, php-format
+msgid "Gitee URLs must use gitee.com for item at index %d"
 msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:52

@@ -34,7 +34,7 @@ if ( ! function_exists( 'upserv_get_vcs_name' ) ) {
 	 * When context is 'view', returns the translatable string meant for display.
 	 * When context is something else, returns the plain string name.
 	 *
-	 * @param string $type    The VCS type ('github', 'gitlab', 'bitbucket', 'gitea')
+	 * @param string $type    The VCS type ('github', 'gitlab', 'bitbucket', 'gitea', 'forgejo', 'gitee')
 	 * @param string $context The context for the return value ('view' or other)
 	 *
 	 * @return string|null The VCS name formatted according to context, or null if invalid type with non-view context
@@ -50,6 +50,10 @@ if ( ! function_exists( 'upserv_get_vcs_name' ) ) {
 				return 'view' === $context ? __( 'Bitbucket', 'updatepulse-server' ) : 'Bitbucket';
 			case 'gitea':
 				return 'view' === $context ? __( 'Gitea', 'updatepulse-server' ) : 'Gitea';
+			case 'forgejo':
+				return 'view' === $context ? __( 'Forgejo', 'updatepulse-server' ) : 'Forgejo';
+			case 'gitee':
+				return 'view' === $context ? __( 'Gitee', 'updatepulse-server' ) : 'Gitee';
 			default:
 				return 'view' === $context ? __( 'Undefined', 'updatepulse-server' ) : null;
 		}
@@ -75,6 +79,14 @@ if ( ! function_exists( 'upserv_get_brand_icon' ) ) {
 			),
 			'gitea'              => array(
 				'path'      => 'M4.2 4.6q-.36-.01-.83.1A4 4 0 0 0 1.3 5.71C-.4 7.25.03 9.69.1 10.05c.06.45.26 1.69 1.2 2.77 1.76 2.14 5.52 2.1 5.52 2.1s.46 1.1 1.17 2.11c.95 1.26 1.94 2.25 2.89 2.37h7.21s.46 0 1.08-.4c.54-.32 1.01-.9 1.01-.9s.5-.52 1.18-1.72q.31-.56.54-1.07S24 10.84 24 6.49c-.04-1.32-.37-1.55-.44-1.63-.16-.16-.37-.15-.37-.15s-4.47.25-6.8.3l-1.5.03V9.5l-.64-.3V5.04c-1.1.02-3.4-.08-3.4-.08s-5.4-.27-6-.33q-.28-.01-.64-.03m.36 1.84h.11s.27 2.26.6 3.6c.28 1.1.95 2.96.95 2.96s-1-.12-1.64-.35c-1-.32-1.41-.71-1.41-.71s-.73-.51-1.1-1.52c-.63-1.69-.05-2.72-.05-2.72s.32-.86 1.47-1.14c.4-.11.86-.12 1.07-.12m8.33 2.55c.26 0 .51.13.51.13l.87.42-.53 1.07a.7.7 0 0 0-.61.36.7.7 0 0 0 .07.76l-.94 1.92a.7.7 0 0 0-.66.53.7.7 0 0 0 .35.76.7.7 0 0 0 .86-.2.7.7 0 0 0-.07-.89l.92-1.87a1 1 0 0 0 .24-.02 1 1 0 0 0 .27-.14 9 9 0 0 1 1.02.51 1 1 0 0 1 .28.29c.07.2-.07.57-.07.57-.09.29-.7 1.55-.7 1.55a.7.7 0 0 0-.68.47.68.68 0 1 0 1.16-.25l.21-.43c.2-.4.52-1.16.52-1.16.03-.07.21-.4.1-.81-.1-.44-.48-.64-.48-.64-.47-.3-1.12-.58-1.12-.58s0-.16-.04-.27a1 1 0 0 0-.15-.24l.52-1.06 2.89 1.4s.48.21.58.62c.07.28-.02.53-.07.65-.24.59-2.1 4.32-2.1 4.32s-.23.55-.74.59a1 1 0 0 1-.4-.05l-.2-.08-4.31-2.1s-.42-.22-.49-.6c-.08-.3.1-.68.1-.68l2.08-4.28s.18-.37.46-.5A1 1 0 0 1 12.9 9',
+				'transform' => 'scale(21.3333333333)',
+			),
+			'forgejo'            => array(
+				'path'      => 'M16.78 0a2.9 2.9 0 1 1-2.53 4.32H12.9a4.27 4.27 0 0 0-4.26 4.2v2.11a7 7 0 0 1 4.14-1.42h1.46a2.9 2.9 0 1 1 0 2.85H12.9a4.27 4.27 0 0 0-4.26 4.2v2.31a2.9 2.9 0 1 1-2.85 0V8.6a7.1 7.1 0 0 1 7-7.11h1.45A2.9 2.9 0 0 1 16.78 0M7.22 19.9a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4m9.56-10.46a1.2 1.2 0 1 0 0 2.39 1.2 1.2 0 0 0 0-2.39m0-7.73a1.2 1.2 0 1 0 0 2.38 1.2 1.2 0 0 0 0-2.38',
+				'transform' => 'scale(21.3333333333)',
+			),
+			'gitee'              => array(
+				'path'      => 'M12 24a12 12 0 1 1 0-24 12 12 0 1 1 0 24m6.08-18.67h-8.3a4.44 4.44 0 0 0-4.45 4.45v8.3c0 .32.27.59.6.59h8.74a4 4 0 0 0 4-4v-3.41a.6.6 0 0 0-.6-.6h-6.81a.6.6 0 0 0-.6.6v1.48c0 .31.25.57.55.6h4.2c.3 0 .57.23.59.54v.34c0 .98-.8 1.77-1.78 1.77H8.6A.6.6 0 0 1 8 15.4V9.77c0-.95.76-1.74 1.7-1.77h8.38a.6.6 0 0 0 .59-.6V5.93c0-.32-.26-.59-.59-.59z',
 				'transform' => 'scale(21.3333333333)',
 			),
 			'github'             => array(

@@ -15,7 +15,7 @@
 					<p class="description">
 						<?php esc_html_e( 'Enables this server to download plugins, themes and generic packages from a Version Control System before delivering updates.', 'updatepulse-server' ); ?>
 						<br>
-						<?php esc_html_e( 'Supports Bitbucket, Github, Gitlab and Gitea.', 'updatepulse-server' ); ?>
+						<?php esc_html_e( 'Supports Bitbucket, GitHub, GitLab, Gitea, Forgejo and Gitee.', 'updatepulse-server' ); ?>
 						<br>
 						<?php
 						printf(
@@ -49,8 +49,10 @@
 					<span class="bitbucket hidden"><?php echo upserv_get_brand_icon( 'bitbucket' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Bitbucket', 'updatepulse-server' ); ?></span>
 					<span class="gitlab hidden"><?php echo upserv_get_brand_icon( 'gitlab' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitlab', 'updatepulse-server' ); ?></span>
 					<span class="gitea hidden"><?php echo upserv_get_brand_icon( 'gitea' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitea', 'updatepulse-server' ); ?></span>
+					<span class="gitee hidden"><?php echo upserv_get_brand_icon( 'gitee' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitee', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-gitlab hidden"><?php echo upserv_get_brand_icon( 'gitlab-self-hosted' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-gitea hidden"><?php echo upserv_get_brand_icon( 'gitea' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Gitea', 'updatepulse-server' ); ?></span>
+					<span class="self-hosted-forgejo hidden"><?php echo upserv_get_brand_icon( 'forgejo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Forgejo', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-undefined hidden"><i class="fa-solid fa-question"></i><?php esc_html_e( 'Unknown', 'updatepulse-server' ); ?></span>
 				</div>
 				<div class="info hidden">
@@ -73,7 +75,7 @@
 							<?php
 							printf(
 								// translators: %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
-								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github or Gitea, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
+								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or organisation name for GitHub, Gitea, Forgejo or Gitee, the workspace name for Bitbucket, and a group for GitLab (no support for GitLab subgroups).', 'updatepulse-server' ),
 								'<code>https://version-control-system.tld/identifier/</code>',
 								'<code>identifier</code>'
 							);
@@ -91,26 +93,29 @@
 						<input type="hidden" class="vcs-setting" id="upserv_vcs_type" data-prop="type" value="undefined">
 					</td>
 				</tr>
-				<tr class="self-hosted self-hosted-gitlab">
-					<th>
-						<label for="upserv_vcs_self_hosted_gitlab"><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></label>
-					</th>
+				<tr class="self-hosted self-hosted-provider">
+					<th scope="row"><?php esc_html_e( 'Self-hosted provider', 'updatepulse-server' ); ?></th>
 					<td>
-						<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitlab" name="self_hosted" data-prop="self_hosted" value="gitlab">
-						<p class="description">
-							<?php esc_html_e( 'Check this only if the Version Control System is a self-hosted instance of Gitlab.', 'updatepulse-server' ); ?>
-						</p>
-					</td>
-				</tr>
-				<tr class="self-hosted self-hosted-gitea">
-					<th>
-						<label for="upserv_vcs_self_hosted_gitea"><?php esc_html_e( 'Self-hosted Gitea', 'updatepulse-server' ); ?></label>
-					</th>
-					<td>
-						<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitea" name="self_hosted" data-prop="self_hosted" value="gitea">
-						<p class="description">
-							<?php esc_html_e( 'Check this only if the Version Control System is a self-hosted instance of Gitea.', 'updatepulse-server' ); ?>
-						</p>
+						<fieldset>
+							<legend class="screen-reader-text"><?php esc_html_e( 'Self-hosted provider', 'updatepulse-server' ); ?></legend>
+							<label for="upserv_vcs_self_hosted_gitlab">
+								<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitlab" name="self_hosted" data-prop="self_hosted" value="gitlab">
+								<?php esc_html_e( 'GitLab', 'updatepulse-server' ); ?>
+							</label>
+							&nbsp;&nbsp;
+							<label for="upserv_vcs_self_hosted_gitea">
+								<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_gitea" name="self_hosted" data-prop="self_hosted" value="gitea">
+								<?php esc_html_e( 'Gitea', 'updatepulse-server' ); ?>
+							</label>
+							&nbsp;&nbsp;
+							<label for="upserv_vcs_self_hosted_forgejo">
+								<input class="vcs-setting" type="radio" id="upserv_vcs_self_hosted_forgejo" name="self_hosted" data-prop="self_hosted" value="forgejo">
+								<?php esc_html_e( 'Forgejo', 'updatepulse-server' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'Select the provider used by this self-hosted Version Control System.', 'updatepulse-server' ); ?>
+							</p>
+						</fieldset>
 					</td>
 				</tr>
 				<tr>
@@ -145,7 +150,7 @@
 							<?php
 							printf(
 								// translators: %s is <code>email@domain.com:API_TOKEN_WITH SCOPE</code>
-								esc_html__( 'In the case of Github, Gitlab and Gitea, a Personal Access Token (PAT); in the case of Bitckucket, the Bitbucket account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
+								esc_html__( 'For GitHub, GitLab, Gitea, Forgejo and Gitee, use a Personal Access Token (PAT); for Bitbucket, use the account email and an API token with scopes formatted like %s.', 'updatepulse-server' ),
 								'<code>email@domain.com:API_TOKEN_WITH_SCOPE</code>'
 							);
 							?>
@@ -298,7 +303,7 @@
 							<?php
 							printf(
 								// translators: %1$s is <code>https://version-control-system.tld/identifier/</code>, %2$s is <code>identifier</code>
-								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or the organisation name in case of Github, Gitea or a self-hosted instance of Gitea, is the workspace name in case of Bitbucket, and is a group in case of Gitlab or a self-hosted instance of Gitlab (no support for Gitlab subgroups).', 'updatepulse-server' ),
+								esc_html__( 'Must follow the following pattern: %1$s where %2$s is the user or organisation name for GitHub, Gitea, Forgejo or Gitee, the workspace name for Bitbucket, and a group for GitLab (no support for GitLab subgroups).', 'updatepulse-server' ),
 								'<code>https://version-control-system.tld/identifier/</code>',
 								'<code>identifier</code>'
 							);

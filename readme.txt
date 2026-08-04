@@ -40,7 +40,7 @@ This plugin adds the following major features to WordPress:
 
 * **Package management:** to manage update packages, showing a listing with Package Name, Version, Type, File Name, Size, File Modified and License Status; includes bulk operations to delete and download, and the ability to delete all the packages.
 * **Add Packages:** Upload update packages from a local machine to the server, or download them to the server from a Version Control System.
-* **Version Control Systems:** Instead of manually uploading packages, use Version Control Systems to host packages, and download them to UpdatePulse Server automatically. Supports Bitbucket, Github, Gitlab and Gitea, as well as self-hosted installations of Gitlab and Gitea.
+* **Version Control Systems:** Instead of manually uploading packages, use Version Control Systems to host packages, and download them to UpdatePulse Server automatically. Supports Bitbucket, GitHub, GitLab, Gitea, self-hosted Forgejo, and Gitee, as well as self-hosted installations of GitLab and Gitea.
 * **Cloud Storage**: Instead of storing packages on the file system where UpdatePulse Server is installed, they can be stored on a cloud storage service, as long as it is compatible with Amazon S3's API. Examples: Amazon S3, Cloudflare R2, Backblaze B2, MinIO, and many more!
 * **UpdatePulse Server does not** install executable code from the Version Control System onto your installation of WordPress, and **does not** track your activity. It is designed to only store packages and licenses, and to provide updates when they are requested.
 * **Licenses:** manage licenses with License Key, Registered Email, Status, Package Type, Package Slug, Creation Date, and Expiration Date; add and edit them with a form, or use the API for more control. Licenses prevent packages from being updated without a valid license. Licenses Keys are generated automatically by default and the values are unguessable (it is recommended to keep the default). When checking the validity of licenses, an extra license signature is also checked to prevent the use of a license on more than the configured allowed domains.
@@ -139,6 +139,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.0.12 =
+* Add Forgejo and Gitee VCS providers with PAT authentication, package polling, archive downloads, and webhook support.
 * Convert Bitbucket authentication from deprecated App Password to API Tokens with scopes. This is a breaking change for users using Bitbucket with App Passwords, who will need to create API Tokens and update their VCS settings.
 
 = 1.0.11 =

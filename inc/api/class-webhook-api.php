@@ -728,6 +728,7 @@ class Webhook_API {
 		$valid  = false;
 		$sign   = false;
 		$secret = isset( $vcs_config['webhook_secret'] ) ? $vcs_config['webhook_secret'] : false;
+		$type   = isset( $vcs_config['type'] ) ? $vcs_config['type'] : '';
 
 		/**
 		 * Filter the webhook secret used for request validation.
@@ -751,7 +752,36 @@ class Webhook_API {
 			return apply_filters( 'upserv_webhook_validate_request', $valid, $sign, '', $vcs_config );
 		}
 
-		if ( ! empty( $_SERVER['HTTP_X_GITLAB_TOKEN'] ) ) {
+		if ( 'gitee' === $type ) {
+			$token = ! empty( $_SERVER['HTTP_X_GITEE_TOKEN'] )
+				? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_GITEE_TOKEN'] ) )
+				: '';
+
+			if ( ! $token ) {
+				$payload = $this->get_payload();
+
+				if ( isset( $payload['password'] ) ) {
+					$token = sanitize_text_field( $payload['password'] );
+				} elseif ( isset( $payload['sign'] ) ) {
+					$token = sanitize_text_field( $payload['sign'] );
+				}
+			}
+
+			$sign  = $token;
+			$valid = $token && hash_equals( $secret, $token );
+		} elseif ( 'forgejo' === $type || 'gitea' === $type ) {
+			if ( ! empty( $_SERVER['HTTP_X_FORGEJO_SIGNATURE'] ) ) {
+				$sign = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORGEJO_SIGNATURE'] ) );
+			} elseif ( ! empty( $_SERVER['HTTP_X_GITEA_SIGNATURE'] ) ) {
+				$sign = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_GITEA_SIGNATURE'] ) );
+			}
+
+			if ( $sign ) {
+				$payload = @file_get_contents( 'php://input' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged
+				$sign    = preg_replace( '/^sha256=/', '', $sign );
+				$valid   = hash_equals( hash_hmac( 'sha256', $payload, $secret ), $sign );
+			}
+		} elseif ( ! empty( $_SERVER['HTTP_X_GITLAB_TOKEN'] ) ) {
 			$valid = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_GITLAB_TOKEN'] ) ) === $secret;
 		} else {
 
