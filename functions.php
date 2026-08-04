@@ -34,7 +34,7 @@ if ( ! function_exists( 'upserv_get_vcs_name' ) ) {
 	 * When context is 'view', returns the translatable string meant for display.
 	 * When context is something else, returns the plain string name.
 	 *
-	 * @param string $type    The VCS type ('github', 'gitlab', 'bitbucket')
+	 * @param string $type    The VCS type ('github', 'gitlab', 'bitbucket', 'gitea')
 	 * @param string $context The context for the return value ('view' or other)
 	 *
 	 * @return string|null The VCS name formatted according to context, or null if invalid type with non-view context
@@ -48,6 +48,8 @@ if ( ! function_exists( 'upserv_get_vcs_name' ) ) {
 				return 'view' === $context ? __( 'GitLab', 'updatepulse-server' ) : 'GitLab';
 			case 'bitbucket':
 				return 'view' === $context ? __( 'Bitbucket', 'updatepulse-server' ) : 'Bitbucket';
+			case 'gitea':
+				return 'view' === $context ? __( 'Gitea', 'updatepulse-server' ) : 'Gitea';
 			default:
 				return 'view' === $context ? __( 'Undefined', 'updatepulse-server' ) : null;
 		}

@@ -846,9 +846,9 @@ class Package_Manager {
 			foreach ( $vcs_configs as $key => $vcs_c ) {
 				$url                 = untrailingslashit( $vcs_c['url'] );
 				$branch              = $vcs_c['branch'];
-				$name                = $vcs_c['self_hosted'] ?
-					__( 'Self-hosted', 'updatepulse-server' ) :
-					upserv_get_vcs_name( $vcs_c['type'] );
+				$name                = ( $vcs_c['self_hosted'] ?
+					__( 'Self-hosted ', 'updatepulse-server' ) : '' )
+					. upserv_get_vcs_name( $vcs_c['type'] );
 				$identifier          = substr( $url, strrpos( $url, '/' ) + 1 );
 				$name                = $name . ' - ' . $identifier . ' - ' . $branch;
 				$vcs_options[ $key ] = $name;

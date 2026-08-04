@@ -434,6 +434,8 @@ class Packages_Table extends WP_List_Table {
 				return $vcs_config['self_hosted'] ? 'fa-brands fa-square-gitlab' : 'fa-brands fa-gitlab';
 			case 'bitbucket':
 				return 'fa-brands fa-bitbucket';
+			case 'gitea':
+				return $vcs_config['self_hosted'] ? 'fa-regular fa-mug-saucer' : 'fa-solid fa-mug-saucer';
 			default:
 				return 'fa-code-commit';
 		}
