@@ -88,7 +88,7 @@ if ( ! trait_exists( ReleaseFilteringFeature::class, false ) ) :
 			$release_types = Api::RELEASE_FILTER_SKIP_PRERELEASE,
 			$max_releases_to_examine = 20
 		) {
-			return $this->setReleaseFilter(
+			return $this->set_release_filter(
 				function ( $version_number ) use ( $regex ) {
 					return ( preg_match( $regex, $version_number ) === 1 );
 				},

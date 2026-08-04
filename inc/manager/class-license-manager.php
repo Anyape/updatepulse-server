@@ -105,14 +105,7 @@ class License_Manager {
 		}
 
 		$manager = new self();
-		/**
-		 * Filter the frequency at which the license maintenance task runs.
-		 *
-		 * @param string $frequency The WordPress schedule frequency (hourly, daily, etc.)
-		 */
-		$frequency = apply_filters( 'upserv_schedule_license_frequency', 'hourly' );
-
-		$manager->register_license_schedules( $frequency );
+		$manager->register_license_schedules();
 	}
 
 	/**

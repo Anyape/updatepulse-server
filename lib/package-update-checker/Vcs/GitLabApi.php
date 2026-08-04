@@ -441,7 +441,7 @@ if ( ! class_exists( GitLabApi::class, false ) ) :
 			$strategies = array();
 
 			if (
-				( 'main' === $config_branch ) || ( 'master' === $config_branch ) &&
+				( ( 'main' === $config_branch ) || ( 'master' === $config_branch ) ) &&
 				( ! defined( 'PUC_FORCE_BRANCH' ) || ! (bool) ( constant( 'PUC_FORCE_BRANCH' ) ) )
 			) {
 				$strategies[ self::STRATEGY_LATEST_RELEASE ] = array( $this, 'get_latest_release' );
@@ -485,7 +485,7 @@ if ( ! class_exists( GitLabApi::class, false ) ) :
 		/**
 		 * Generate the value of the "Authorization" header.
 		 *
-		 * @return string The authorization header value.
+		 * @return array The authorization header value.
 		 */
 		public function get_authorization_headers() {
 			return array( 'PRIVATE-TOKEN' => $this->access_token );

@@ -4,7 +4,7 @@ Donate link: https://paypal.me/frogerme
 Tags: Plugin updates, Theme updates, WordPress updates, License
 Requires at least: 6.7
 Tested up to: 6.7
-Stable tag: 1.0.12
+Stable tag: 1.1.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -138,9 +138,11 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
-= 1.0.12 =
-* Add Forgejo and Gitee VCS providers with PAT authentication, package polling, archive downloads, and webhook support.
+= 1.1.0 =
+* Add Gitea (thx @relic-se on Github), Forgejo and Gitee VCS providers
 * Convert Bitbucket authentication from deprecated App Password to API Tokens with scopes. This is a breaking change for users using Bitbucket with App Passwords, who will need to create API Tokens and update their VCS settings.
+* AGENTS.md guidelines & Minor fixes
+* Documentation update
 
 = 1.0.11 =
 * Fix issue [Add License Button missing from Licenses tab](https://github.com/Anyape/updatepulse-server/issues/9)

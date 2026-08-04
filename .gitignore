@@ -3,5 +3,3 @@
 **/.eslintrc
 **/.installed
 .DS_Store
-.distignore
-AGENTS.md

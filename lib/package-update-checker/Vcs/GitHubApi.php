@@ -533,7 +533,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		 * @link https://developer.github.com/v3/auth/#basic-authentication
 		 *
 		 * @internal
-		 * @param array $requestArgs
+		 * @param array $request_args
 		 * @param string $url
 		 * @return array
 		 */
@@ -579,7 +579,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		/**
 		 * Create the value for the "Authorization" header.
 		 *
-		 * @return string
+		 * @return array
 		 */
 		public function get_authorization_headers() {
 			return array(

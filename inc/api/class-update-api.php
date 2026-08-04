@@ -325,8 +325,8 @@ class Update_API {
 		if ( ! $type ) {
 			$types = array( 'plugin', 'theme', 'generic' );
 
-			foreach ( $types as $type ) {
-				$result = $this->download_remote_package( $slug, $type, $force );
+			foreach ( $types as $_type ) {
+				$result = $this->download_remote_package( $slug, $_type, $force );
 
 				if ( $result ) {
 					break;

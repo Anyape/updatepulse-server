@@ -60,13 +60,13 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 				$this->repository_protocol = wp_parse_url( $repository_url, PHP_URL_SCHEME );
 			}
 
-            try {
-                parent::__construct( $repository_url, $access_token );
-            } catch ( InvalidArgumentException $e ) {
+			try {
+				parent::__construct( $repository_url, $access_token );
+			} catch ( InvalidArgumentException $e ) {
 				throw new InvalidArgumentException(
 					esc_html( 'Invalid Gitea repository URL: "' . $repository_url . '"' )
 				);
-            }
+			}
 		}
 
 		/**
@@ -78,11 +78,11 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		 */
 		public static function test( $url, $access_token = null ) {
 			$instance = new self( $url . 'bogus/', $access_token );
-            $endpoint = sprintf(
-                '%1$s://%2$s/api/v1/user',
-                $instance->repository_protocol,
-                $instance->repository_host
-            );
+			$endpoint = sprintf(
+				'%1$s://%2$s/api/v1/user',
+				$instance->repository_protocol,
+				$instance->repository_host
+			);
 			$response = $instance->api( $endpoint, array(), true );
 
 			if ( is_wp_error( $response ) ) {
@@ -100,13 +100,13 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 				return false;
 			}
 
-            $endpoint = sprintf(
-                '%1$s://%2$s/api/v1/orgs/%3$s/members/%4$s',
-                $instance->repository_protocol,
-                $instance->repository_host,
-                rawurlencode( $instance->user_name ),
-                rawurlencode( $response->login )
-            );
+			$endpoint = sprintf(
+				'%1$s://%2$s/api/v1/orgs/%3$s/members/%4$s',
+				$instance->repository_protocol,
+				$instance->repository_host,
+				rawurlencode( $instance->user_name ),
+				rawurlencode( $response->login )
+			);
 			$response = $instance->api( $endpoint, array(), true );
 
 			if ( is_wp_error( $response ) ) {
@@ -127,17 +127,20 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 			return true;
 		}
 
-        private function replace_host( $url, $replace = 'https://api.github.com' ) {
-            if ( !str_starts_with( $url, $replace ) ) return $url;
-            $url = substr( $url, strlen( $replace ) );
-            $url = sprintf(
-                '%1$s://%2$s/api/v1%3$s',
-                $this->repository_protocol,
-                $this->repository_host,
-                $url
-            );
+		private function replace_host( $url, $replace = 'https://api.github.com' ) {
+
+			if ( ! str_starts_with( $url, $replace ) ) {
+				return $url;
+			}
+			$url = substr( $url, strlen( $replace ) );
+			$url = sprintf(
+				'%1$s://%2$s/api/v1%3$s',
+				$this->repository_protocol,
+				$this->repository_host,
+				$url
+			);
 			return $url;
-        }
+		}
 
 		/**
 		 * Construct a fully qualified URL for an API request.
@@ -147,7 +150,7 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		 * @return string The fully qualified URL.
 		 */
 		protected function build_api_url( $url, $query_params ) {
-            return $this->replace_host( parent::build_api_url($url, $query_params) );
+			return $this->replace_host( parent::build_api_url( $url, $query_params ) );
 		}
 
 		/**
@@ -157,7 +160,7 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		 * @return string The download URL.
 		 */
 		public function build_archive_download_url( $ref = 'main' ) {
-            return $this->replace_host( parent::build_archive_download_url( $ref ) );
+			return $this->replace_host( parent::build_archive_download_url( $ref ) );
 		}
 
 		/**
@@ -166,7 +169,7 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		 * @return string The base URL for release assets.
 		 */
 		protected function get_asset_api_base_url() {
-            return $this->replace_host( parent::get_asset_api_base_url(), '//api.github.com' );
+			return $this->replace_host( parent::get_asset_api_base_url(), '//api.github.com' );
 		}
 
 		/**
@@ -179,7 +182,6 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 				'Authorization' => 'token ' . $this->access_token,
 			);
 		}
-
 	}
 
 endif;

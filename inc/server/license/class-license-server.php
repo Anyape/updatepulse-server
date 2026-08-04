@@ -1056,6 +1056,7 @@ class License_Server {
 
 		$errors = array();
 		$return = true;
+		$found  = false;
 
 		if ( ! is_array( $license ) ) {
 			$errors['unexpected'] = __( 'An unexpected error has occured. Please try again. If the problem persists, please contact the author of the plugin.', 'updatepulse-server' );

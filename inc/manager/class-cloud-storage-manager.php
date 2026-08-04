@@ -219,16 +219,12 @@ class Cloud_Storage_Manager {
 
 		// Remove actions.
 		foreach ( self::$hooks['actions'] as $hook ) {
-			$accepted_args = isset( $hook[3] ) ? $hook[3] : 1;
-
-			remove_action( $hook[0], array( $this, $hook[1] ), $hook[2], $accepted_args );
+			remove_action( $hook[0], array( $this, $hook[1] ), $hook[2] );
 		}
 
 		// Remove filters.
 		foreach ( self::$hooks['filters'] as $hook ) {
-			$accepted_args = isset( $hook[3] ) ? $hook[3] : 1;
-
-			remove_filter( $hook[0], array( $this, $hook[1] ), $hook[2], $accepted_args );
+			remove_filter( $hook[0], array( $this, $hook[1] ), $hook[2] );
 		}
 
 		self::$hooks = array();

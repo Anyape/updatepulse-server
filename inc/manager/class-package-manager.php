@@ -1035,7 +1035,7 @@ class Package_Manager {
 	 * Downloads multiple packages in bulk.
 	 *
 	 * @param array $package_slugs Package slugs to download.
-	 * @return void
+	 * @return string|false|null Error code, false if archive creation fails, or null if the filesystem is unavailable.
 	 * @since 1.0.0
 	 */
 	public function download_packages_bulk( $package_slugs ) {
@@ -1070,9 +1070,7 @@ class Package_Manager {
 			}
 
 			if ( $max_archive_size < ( (float) ( $total_size / UPSERV_MB_TO_B ) ) ) {
-				$this->packages_table->bulk_action_error = 'max_file_size_exceeded';
-
-				return;
+				return 'max_file_size_exceeded';
 			}
 
 			$this->trigger_packages_download( $archive_name, $archive_path );
@@ -1099,9 +1097,7 @@ class Package_Manager {
 		}
 
 		if ( $max_archive_size < ( (float) ( $total_size / UPSERV_MB_TO_B ) ) ) {
-			$this->packages_table->bulk_action_error = 'max_file_size_exceeded';
-
-			return;
+			return 'max_file_size_exceeded';
 		}
 
 		$zip = new ZipArchive();
