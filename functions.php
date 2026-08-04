@@ -663,6 +663,91 @@ if ( ! function_exists( 'upserv_get_package_vcs_config' ) ) {
  * Package functions
  *******************************************************************/
 
+if ( ! function_exists( 'upserv_is_valid_package_slug' ) ) {
+	/**
+	 * Determine whether a package slug is safe for API and filesystem use.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $package_slug The package slug to validate.
+	 * @return bool Whether the package slug is valid.
+	 */
+	function upserv_is_valid_package_slug( $package_slug ) {
+
+		if ( ! is_string( $package_slug ) || '' === $package_slug ) {
+			return false;
+		}
+
+		$decoded_slug = rawurldecode( $package_slug );
+
+		return $decoded_slug === $package_slug
+			&& ! in_array( $package_slug, array( '.', '..' ), true )
+			&& 1 === preg_match( '/^[a-z0-9._,+!-]+$/i', $package_slug );
+	}
+}
+
+if ( ! function_exists( 'upserv_get_validated_package_path' ) ) {
+	/**
+	 * Build a package archive path contained by the packages directory.
+	 *
+	 * Existing files are resolved canonically so symlinks cannot escape the
+	 * configured package root. Paths for new archives use the canonical root and
+	 * a validated fixed basename.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $package_slug The package slug.
+	 * @param bool   $must_exist   Whether the archive must already exist.
+	 * @return string|false The validated archive path, or false when invalid.
+	 */
+	function upserv_get_validated_package_path( $package_slug, $must_exist = true ) {
+
+		if ( ! upserv_is_valid_package_slug( $package_slug ) ) {
+			return false;
+		}
+
+		$root = realpath( Data_Manager::get_data_dir( 'packages' ) );
+
+		if ( false === $root || ! is_dir( $root ) ) {
+			return false;
+		}
+
+		$root = trailingslashit( wp_normalize_path( $root ) );
+		$path = $root . $package_slug . '.zip';
+
+		if ( ! $must_exist && is_link( $path ) ) {
+			return false;
+		}
+
+		if ( file_exists( $path ) || is_link( $path ) ) {
+			$resolved_path = realpath( $path );
+
+			if ( false === $resolved_path || ! is_file( $resolved_path ) ) {
+				return false;
+			}
+
+			$resolved_path   = wp_normalize_path( $resolved_path );
+			$comparison_root = $root;
+			$comparison_path = $resolved_path;
+
+			if ( '\\' === DIRECTORY_SEPARATOR ) {
+				$comparison_root = strtolower( $comparison_root );
+				$comparison_path = strtolower( $comparison_path );
+			}
+
+			if ( 0 !== strpos( $comparison_path, $comparison_root ) ) {
+				return false;
+			}
+
+			$path = $resolved_path;
+		} elseif ( $must_exist ) {
+			return false;
+		}
+
+		return $path;
+	}
+}
+
 if ( ! function_exists( 'upserv_delete_package' ) ) {
 	/**
 	 * Delete a package on the file system.
@@ -781,9 +866,9 @@ if ( ! function_exists( 'upserv_get_local_package_path' ) ) {
 			wp_die( __FUNCTION__ . ' - WP_Filesystem not available.' );
 		}
 
-		$package_path = trailingslashit( Data_Manager::get_data_dir( 'packages' ) ) . $package_slug . '.zip';
+		$package_path = upserv_get_validated_package_path( $package_slug, true );
 
-		if ( $wp_filesystem->is_file( $package_path ) ) {
+		if ( $package_path && $wp_filesystem->is_file( $package_path ) && is_readable( $package_path ) ) {
 			return $package_path;
 		}
 

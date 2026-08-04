@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use WP_Error;
 use Exception;
+use Anyape\UpdatePulse\Server\Nonce\Nonce;
 use Anyape\UpdatePulse\Server\Server\License\License_Server;
 use Anyape\Utils\Utils;
 
@@ -68,6 +69,13 @@ class License_API {
 	 * @since 1.0.0
 	 */
 	protected $api_access;
+	/**
+	 * Server-validated License API claim for the current Nonce API payload.
+	 *
+	 * @var array|false
+	 * @since 1.1.0
+	 */
+	protected $validated_nonce_api_claim = false;
 
 	/**
 	 * Constructor
@@ -99,6 +107,7 @@ class License_API {
 				add_filter( 'upserv_handle_update_request_params', array( $this, 'upserv_handle_update_request_params' ), 0, 1 );
 				add_filter( 'upserv_api_license_actions', array( $this, 'upserv_api_license_actions' ), 0, 1 );
 				add_filter( 'upserv_api_webhook_events', array( $this, 'upserv_api_webhook_events' ), 0, 1 );
+				add_filter( 'upserv_nonce_api_payload_validation', array( $this, 'upserv_nonce_api_payload_validation' ), 10, 3 );
 				add_filter( 'upserv_nonce_api_payload', array( $this, 'upserv_nonce_api_payload' ), 0, 1 );
 			}
 		}
@@ -904,6 +913,65 @@ class License_API {
 	}
 
 	/**
+	 * Validate License API authorization intent in a Nonce API payload.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param true|WP_Error $validation Previous validation result.
+	 * @param array         $payload    The unmodified Nonce API payload.
+	 * @param string        $method     The Nonce API action.
+	 * @return true|WP_Error Validation result.
+	 */
+	public function upserv_nonce_api_payload_validation( $validation, $payload, $method ) {
+		unset( $method );
+
+		if ( is_wp_error( $validation ) ) {
+			return $validation;
+		}
+
+		global $wp;
+
+		$data                     = isset( $payload['data'] ) && is_array( $payload['data'] ) ? $payload['data'] : array();
+		$targets_license_api      = isset( $wp->query_vars['api'] ) && 'license' === $wp->query_vars['api'];
+		$license_api_token_intent = $targets_license_api || isset( $data['license_api'] );
+
+		if ( ! $license_api_token_intent ) {
+			return true;
+		}
+
+		$config        = self::get_config();
+		$authenticated = Nonce::authenticate_api_request( $config['private_api_auth_keys'] );
+
+		if ( ! $authenticated || ! $this->authorize_ip() ) {
+			return new WP_Error( 'invalid_parameters', __( 'Malformed request.', 'updatepulse-server' ) );
+		}
+
+		$key_id            = $authenticated['id'];
+		$configured_access = $authenticated['access'];
+
+		if ( isset( $data['license_api'] ) ) {
+			$claim = $data['license_api'];
+
+			if (
+				! is_array( $claim ) ||
+				! isset( $claim['id'], $claim['access'] ) ||
+				$key_id !== $claim['id'] ||
+				! is_array( $claim['access'] ) ||
+				! Nonce::is_access_subset( $claim['access'], $configured_access )
+			) {
+				return new WP_Error( 'invalid_parameters', __( 'Malformed request.', 'updatepulse-server' ) );
+			}
+		}
+
+		$this->validated_nonce_api_claim = array(
+			'id'     => $key_id,
+			'access' => $configured_access,
+		);
+
+		return true;
+	}
+
+	/**
 	 * Nonce API payload filter
 	 *
 	 * @param array $payload
@@ -911,44 +979,12 @@ class License_API {
 	 * @since 1.0.0
 	 */
 	public function upserv_nonce_api_payload( $payload ) {
-		global $wp;
-
-		if ( ! isset( $wp->query_vars['api'] ) || 'license' !== $wp->query_vars['api'] ) {
+		if ( ! $this->validated_nonce_api_claim ) {
 			return $payload;
 		}
 
-		$key_id      = false;
-		$credentials = array();
-		$config      = self::get_config();
-
-		if ( ! empty( $_SERVER['HTTP_X_UPDATEPULSE_API_CREDENTIALS'] ) ) {
-			$credentials = explode(
-				'|',
-				sanitize_text_field(
-					wp_unslash( $_SERVER['HTTP_X_UPDATEPULSE_API_CREDENTIALS'] )
-				)
-			);
-		} elseif (
-			isset( $wp->query_vars['api_credentials'], $wp->query_vars['api'] ) &&
-			is_string( $wp->query_vars['api_credentials'] ) &&
-			! empty( $wp->query_vars['api_credentials'] )
-		) {
-			$credentials = explode( '|', $wp->query_vars['api_credentials'] );
-		}
-
-		if ( 2 === count( $credentials ) ) {
-			$key_id = end( $credentials );
-		}
-
-		if ( $key_id && isset( $config['private_api_auth_keys'][ $key_id ] ) ) {
-			$values                         = $config['private_api_auth_keys'][ $key_id ];
-			$payload['data']['license_api'] = array(
-				'id'     => $key_id,
-				'access' => isset( $values['access'] ) ? $values['access'] : array(),
-			);
-		}
-
-		$payload['expiry_length'] = HOUR_IN_SECONDS / 2;
+		$payload['data']['license_api'] = $this->validated_nonce_api_claim;
+		$payload['expiry_length']       = HOUR_IN_SECONDS / 2;
 
 		return $payload;
 	}

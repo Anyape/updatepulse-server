@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WP_Error;
+use Anyape\UpdatePulse\Server\Nonce\Nonce;
 use Anyape\UpdatePulse\Server\Manager\Zip_Package_Manager;
 use Anyape\UpdatePulse\Server\Manager\Data_Manager;
 use Anyape\UpdatePulse\Server\Server\Update\Cache;
@@ -64,6 +65,13 @@ class Package_API {
 	 * @since 1.0.0
 	 */
 	protected $api_access;
+	/**
+	 * Server-validated claims to add to the current Nonce API payload.
+	 *
+	 * @var array
+	 * @since 1.1.0
+	 */
+	protected $validated_nonce_api_claims = array();
 
 	/**
 	 * Constructor
@@ -84,6 +92,7 @@ class Package_API {
 			add_filter( 'query_vars', array( $this, 'query_vars' ), -99, 1 );
 			add_filter( 'upserv_api_package_actions', array( $this, 'upserv_api_package_actions' ), 0, 1 );
 			add_filter( 'upserv_api_webhook_events', array( $this, 'upserv_api_webhook_events' ), 10, 1 );
+			add_filter( 'upserv_nonce_api_payload_validation', array( $this, 'upserv_nonce_api_payload_validation' ), 10, 3 );
 			add_filter( 'upserv_nonce_api_payload', array( $this, 'upserv_nonce_api_payload' ), 0, 1 );
 			add_filter( 'upserv_package_info_include', array( $this, 'upserv_package_info_include' ), 10, 2 );
 		}
@@ -433,8 +442,22 @@ class Package_API {
 	 * @since 1.0.0
 	 */
 	public function signed_url( $package_id, $type ) {
-		$package_id = filter_var( $package_id, FILTER_SANITIZE_URL );
-		$type       = filter_var( $type, FILTER_SANITIZE_URL );
+		$package_info = upserv_get_package_info( $package_id, false );
+
+		if (
+			! $this->is_valid_package_target( $type, $package_id ) ||
+			! is_array( $package_info ) ||
+			! isset( $package_info['type'] ) ||
+			$type !== $package_info['type']
+		) {
+			$this->http_response_code = 404;
+
+			return (object) array(
+				'code'    => 'package_not_found',
+				'message' => __( 'Package not found.', 'updatepulse-server' ),
+			);
+		}
+
 		/**
 		 * Filter the token used to sign the URL.
 		 *
@@ -451,9 +474,12 @@ class Package_API {
 				false,
 				HOUR_IN_SECONDS,
 				array(
-					'actions'    => array( 'download' ),
-					'type'       => $type,
-					'package_id' => $package_id,
+					'package_download' => array(
+						'action'     => 'download',
+						'type'       => $type,
+						'package_id' => $package_id,
+						'issued_by'  => 'package_api',
+					),
 				),
 			);
 		}
@@ -716,29 +742,116 @@ class Package_API {
 	public function upserv_fetch_nonce_public( $nonce, $true_nonce, $expiry, $data ) {
 		global $wp;
 
-		$current_action = $wp->query_vars['action'];
+		$claim      = isset( $data['package_download'] ) && is_array( $data['package_download'] ) ? $data['package_download'] : array();
+		$action     = isset( $wp->query_vars['action'] ) ? $wp->query_vars['action'] : null;
+		$type       = isset( $wp->query_vars['type'] ) ? $wp->query_vars['type'] : null;
+		$package_id = isset( $wp->query_vars['package_id'] ) ? $wp->query_vars['package_id'] : null;
 
 		if (
-			isset( $data['actions'] ) &&
-			is_array( $data['actions'] ) &&
-			! empty( $data['actions'] )
+			! isset( $claim['action'], $claim['type'], $claim['package_id'], $claim['issued_by'] ) ||
+			'download' !== $claim['action'] ||
+			'package_api' !== $claim['issued_by'] ||
+			$action !== $claim['action'] ||
+			$type !== $claim['type'] ||
+			$package_id !== $claim['package_id']
 		) {
-
-			if ( ! in_array( $current_action, $data['actions'], true ) ) {
-				$nonce = null;
-			} elseif ( isset( $data['type'], $data['package_id'] ) ) {
-				$type       = isset( $wp->query_vars['type'] ) ? $wp->query_vars['type'] : null;
-				$package_id = isset( $wp->query_vars['package_id'] ) ? $wp->query_vars['package_id'] : null;
-
-				if ( $type !== $data['type'] || $package_id !== $data['package_id'] ) {
-					$nonce = null;
-				}
-			}
-		} else {
 			$nonce = null;
 		}
 
 		return $nonce;
+	}
+
+	/**
+	 * Validate Package API authorization intent in a Nonce API payload.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param true|WP_Error $validation Previous validation result.
+	 * @param array         $payload    The unmodified Nonce API payload.
+	 * @param string        $method     The Nonce API action.
+	 * @return true|WP_Error Validation result.
+	 */
+	public function upserv_nonce_api_payload_validation( $validation, $payload, $method ) {
+		unset( $method );
+
+		if ( is_wp_error( $validation ) ) {
+			return $validation;
+		}
+
+		global $wp;
+
+		$data                     = isset( $payload['data'] ) && is_array( $payload['data'] ) ? $payload['data'] : array();
+		$targets_package_api      = isset( $wp->query_vars['api'] ) && 'package' === $wp->query_vars['api'];
+		$package_api_token_intent = $targets_package_api || isset( $data['package_api'] );
+		$package_download_intent  = isset( $data['actions'], $data['type'], $data['package_id'] )
+			&& is_array( $data['actions'] )
+			&& in_array( 'download', $data['actions'], true );
+		$submitted_download_claim = isset( $data['package_download'] )
+			&& is_array( $data['package_download'] )
+			&& isset( $data['package_download']['action'] )
+			&& 'download' === $data['package_download']['action'];
+
+		if ( ! $package_api_token_intent && ! $package_download_intent && ! $submitted_download_claim ) {
+			return true;
+		}
+
+		$config        = self::get_config();
+		$authenticated = Nonce::authenticate_api_request( $config['private_api_auth_keys'] );
+
+		if ( ! $authenticated || ! $this->authorize_ip() ) {
+			return new WP_Error( 'invalid_parameters', __( 'Malformed request.', 'updatepulse-server' ) );
+		}
+
+		$key_id            = $authenticated['id'];
+		$configured_access = $authenticated['access'];
+
+		if ( isset( $data['package_api'] ) ) {
+			$claim = $data['package_api'];
+
+			if (
+				! is_array( $claim ) ||
+				! isset( $claim['id'], $claim['access'] ) ||
+				$key_id !== $claim['id'] ||
+				! is_array( $claim['access'] ) ||
+				! Nonce::is_access_subset( $claim['access'], $configured_access )
+			) {
+				return new WP_Error( 'invalid_parameters', __( 'Malformed request.', 'updatepulse-server' ) );
+			}
+		}
+
+		if ( $package_download_intent || $submitted_download_claim ) {
+			$download_claim = $package_download_intent ? $data : $data['package_download'];
+			$type           = isset( $download_claim['type'] ) ? $download_claim['type'] : null;
+			$package_id     = isset( $download_claim['package_id'] ) ? $download_claim['package_id'] : null;
+			$package_info   = $this->is_valid_package_target( $type, $package_id ) ? upserv_get_package_info( $package_id, false ) : false;
+
+			if (
+				! $this->has_api_access( $configured_access, 'signed_url' ) ||
+				! is_array( $package_info ) ||
+				! isset( $package_info['type'] ) ||
+				$type !== $package_info['type']
+			) {
+				return new WP_Error( 'invalid_parameters', __( 'Malformed request.', 'updatepulse-server' ) );
+			}
+		}
+
+		if ( $package_api_token_intent ) {
+			$this->validated_nonce_api_claims['package_api'] = array(
+				'id'     => $key_id,
+				'access' => $configured_access,
+			);
+		}
+
+		if ( $package_download_intent || $submitted_download_claim ) {
+			$this->validated_nonce_api_claims['package_download'] = array(
+				'action'     => 'download',
+				'type'       => $download_claim['type'],
+				'package_id' => $download_claim['package_id'],
+				'issued_by'  => 'package_api',
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -800,41 +913,12 @@ class Package_API {
 	 * @since 1.0.0
 	 */
 	public function upserv_nonce_api_payload( $payload ) {
-		global $wp;
-
-		if ( ! isset( $wp->query_vars['api'] ) || 'package' !== $wp->query_vars['api'] ) {
+		if ( ! $this->validated_nonce_api_claims ) {
 			return $payload;
 		}
 
-		$key_id      = false;
-		$credentials = array();
-		$config      = self::get_config();
-
-		if ( ! empty( $_SERVER['HTTP_X_UPDATEPULSE_API_CREDENTIALS'] ) ) {
-			$credentials = explode(
-				'|',
-				sanitize_text_field(
-					wp_unslash( $_SERVER['HTTP_X_UPDATEPULSE_API_CREDENTIALS'] )
-				)
-			);
-		} elseif (
-			isset( $wp->query_vars['api_credentials'], $wp->query_vars['api'] ) &&
-			is_string( $wp->query_vars['api_credentials'] ) &&
-			! empty( $wp->query_vars['api_credentials'] )
-		) {
-			$credentials = explode( '|', $wp->query_vars['api_credentials'] );
-		}
-
-		if ( 2 === count( $credentials ) ) {
-			$key_id = end( $credentials );
-		}
-
-		if ( $key_id && isset( $config['private_api_auth_keys'][ $key_id ]['key'] ) ) {
-			$values                         = $config['private_api_auth_keys'][ $key_id ];
-			$payload['data']['package_api'] = array(
-				'id'     => $key_id,
-				'access' => isset( $values['access'] ) ? $values['access'] : array(),
-			);
+		foreach ( $this->validated_nonce_api_claims as $claim_name => $claim ) {
+			$payload['data'][ $claim_name ] = $claim;
 		}
 
 		$payload['expiry_length'] = HOUR_IN_SECONDS / 2;
@@ -1009,12 +1093,29 @@ class Package_API {
 		try {
 			$result    = $package_manager->clean_package();
 			$cache     = new Cache( Data_Manager::get_data_dir( 'cache' ) );
-			$file_path = Data_Manager::get_data_dir( 'packages' ) . $package_id . '.zip';
-			$package   = Package::from_archive( $file_path, $package_id, $cache );
+			$file_path = upserv_get_validated_package_path( $package_id, true );
+
+			if ( ! $result || ! $file_path ) {
+				throw new Invalid_Package_Exception( 'Invalid package path.' );
+			}
+
+			$package = Package::from_archive( $file_path, $package_id, $cache );
 		} catch ( Invalid_Package_Exception ) {
 			wp_delete_file( $local_filename );
-			wp_delete_file( Data_Manager::get_data_dir( 'tmp' ) . $package_id . '.zip' );
-			wp_delete_file( Data_Manager::get_data_dir( 'packages' ) . $package_id . '.zip' );
+
+			if ( upserv_is_valid_package_slug( $package_id ) ) {
+				$tmp_root = realpath( Data_Manager::get_data_dir( 'tmp' ) );
+
+				if ( false !== $tmp_root ) {
+					wp_delete_file( trailingslashit( wp_normalize_path( $tmp_root ) ) . $package_id . '.zip' );
+				}
+
+				$package_path = upserv_get_validated_package_path( $package_id, true );
+
+				if ( $package_path ) {
+					wp_delete_file( $package_path );
+				}
+			}
 
 			$result = false;
 		}
@@ -1198,9 +1299,19 @@ class Package_API {
 	protected function handle_api_request() {
 		global $wp;
 
-		$method = isset( $wp->query_vars['action'] ) ? $wp->query_vars['action'] : false;
+		$method             = isset( $wp->query_vars['action'] ) ? $wp->query_vars['action'] : false;
+		$registered_actions = array( 'browse', 'read', 'edit', 'add', 'delete', 'download', 'signed_url' );
+		$target_actions     = array( 'read', 'edit', 'add', 'delete', 'download', 'signed_url' );
+		$type               = isset( $wp->query_vars['type'] ) ? $wp->query_vars['type'] : null;
+		$package_id         = isset( $wp->query_vars['package_id'] ) ? $wp->query_vars['package_id'] : null;
 
-		if (
+		if ( in_array( $method, $target_actions, true ) && ! $this->is_valid_package_target( $type, $package_id ) ) {
+			$this->http_response_code = 400;
+			$response                 = array(
+				'code'    => 'invalid_parameters',
+				'message' => __( 'Malformed request.', 'updatepulse-server' ),
+			);
+		} elseif (
 			sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'action' ) ) ) &&
 			! $this->is_api_public( $method )
 		) {
@@ -1259,7 +1370,7 @@ class Package_API {
 					 */
 					do_action( 'upserv_package_api_request', $method, $payload );
 
-					if ( method_exists( $this, $method ) ) {
+					if ( in_array( $method, $registered_actions, true ) && method_exists( $this, $method ) ) {
 						$type       = isset( $payload['type'] ) ? $payload['type'] : null;
 						$package_id = isset( $payload['package_id'] ) ? $payload['package_id'] : null;
 
@@ -1325,5 +1436,33 @@ class Package_API {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Determine whether configured access grants an action.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param array  $configured_access Configured access entries.
+	 * @param string $action            Requested action.
+	 * @return bool Whether access is granted.
+	 */
+	protected function has_api_access( $configured_access, $action ) {
+		return in_array( 'all', $configured_access, true ) || in_array( $action, $configured_access, true );
+	}
+
+	/**
+	 * Validate a package API target before authorization or dispatch.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param mixed $type       Package type.
+	 * @param mixed $package_id Package slug.
+	 * @return bool Whether the target is valid.
+	 */
+	protected function is_valid_package_target( $type, $package_id ) {
+		return is_string( $type )
+			&& in_array( $type, array( 'plugin', 'theme', 'generic' ), true )
+			&& upserv_is_valid_package_slug( $package_id );
 	}
 }

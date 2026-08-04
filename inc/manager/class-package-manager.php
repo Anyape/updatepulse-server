@@ -732,8 +732,8 @@ class Package_Manager {
 		$filename = $files['package']['name'];
 		$slug     = str_replace( '.zip', '', $filename );
 		$type     = ucfirst( $parsed_info['type'] );
-		$dest     = Data_Manager::get_data_dir( 'packages' ) . $filename;
-		$result   = $wp_filesystem->move( $files['package']['tmp_name'], $dest, true );
+		$dest     = upserv_get_validated_package_path( $slug, false );
+		$result   = $dest ? $wp_filesystem->move( $files['package']['tmp_name'], $dest, true ) : false;
 
 		/**
 		 * Fired after an attempt to manually upload a package.
@@ -971,6 +971,11 @@ class Package_Manager {
 		do_action( 'upserv_package_manager_pre_delete_packages_bulk', $package_slugs );
 
 		foreach ( $package_slugs as $slug ) {
+
+			if ( ! upserv_is_valid_package_slug( $slug ) ) {
+				continue;
+			}
+
 			$package_name = $slug . '.zip';
 
 			if ( in_array( $package_name, $package_names, true ) ) {
@@ -1046,13 +1051,23 @@ class Package_Manager {
 			return null;
 		}
 
-		$package_directory = Data_Manager::get_data_dir( 'packages' );
-		$total_size        = 0;
-		$max_archive_size  = upserv_get_option( 'limits/archive_max_size', self::DEFAULT_ARCHIVE_MAX_SIZE );
+		$total_size       = 0;
+		$max_archive_size = upserv_get_option( 'limits/archive_max_size', self::DEFAULT_ARCHIVE_MAX_SIZE );
+		$package_paths    = array();
+
+		foreach ( $package_slugs as $package_slug ) {
+			$package_path = upserv_get_validated_package_path( $package_slug, false );
+
+			if ( ! $package_path ) {
+				return false;
+			}
+
+			$package_paths[ $package_slug ] = $package_path;
+		}
 
 		if ( 1 === count( $package_slugs ) ) {
 			$archive_name = reset( $package_slugs );
-			$archive_path = trailingslashit( $package_directory ) . $archive_name . '.zip';
+			$archive_path = $package_paths[ $archive_name ];
 
 			/**
 			 * Fired before packages are downloaded.
@@ -1063,10 +1078,13 @@ class Package_Manager {
 			 * @since 1.0.0
 			 */
 			do_action( 'upserv_before_packages_download', $archive_name, $archive_path, $package_slugs );
+			$archive_path = upserv_get_validated_package_path( $archive_name, true );
 
-			foreach ( $package_slugs as $package_slug ) {
-				$total_size += filesize( trailingslashit( $package_directory ) . $package_slug . '.zip' );
+			if ( ! $archive_path ) {
+				return false;
 			}
+
+			$total_size = filesize( $archive_path );
 
 			if ( $max_archive_size < ( (float) ( $total_size / UPSERV_MB_TO_B ) ) ) {
 				return 'max_file_size_exceeded';
@@ -1092,7 +1110,14 @@ class Package_Manager {
 		do_action( 'upserv_before_packages_download_repack', $archive_name, $archive_path, $package_slugs );
 
 		foreach ( $package_slugs as $package_slug ) {
-			$total_size += filesize( trailingslashit( $package_directory ) . $package_slug . '.zip' );
+			$package_path = upserv_get_validated_package_path( $package_slug, true );
+
+			if ( ! $package_path ) {
+				return false;
+			}
+
+			$package_paths[ $package_slug ] = $package_path;
+			$total_size                    += filesize( $package_path );
 		}
 
 		if ( $max_archive_size < ( (float) ( $total_size / UPSERV_MB_TO_B ) ) ) {
@@ -1105,12 +1130,8 @@ class Package_Manager {
 			return false;
 		}
 
-		foreach ( $package_slugs as $package_slug ) {
-			$file = trailingslashit( $package_directory ) . $package_slug . '.zip';
-
-			if ( is_file( $file ) ) {
-				$zip->addFromString( $package_slug . '.zip', @file_get_contents( $file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged
-			}
+		foreach ( $package_paths as $package_slug => $package_path ) {
+			$zip->addFromString( $package_slug . '.zip', @file_get_contents( $package_path ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 
 		$zip->close();
@@ -1138,8 +1159,9 @@ class Package_Manager {
 	 * @since 1.0.0
 	 */
 	public function trigger_packages_download( $archive_name, $archive_path, $exit_or_die = true ) {
+		$archive_path = $this->get_contained_download_path( $archive_path );
 
-		if ( ! empty( $archive_path ) && is_file( $archive_path ) && ! empty( $archive_name ) ) {
+		if ( $archive_path && ! empty( $archive_name ) ) {
 
 			if ( ini_get( 'zlib.output_compression' ) ) {
 				@ini_set( 'zlib.output_compression', 'Off' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.PHP.IniSet.Risky
@@ -1255,6 +1277,10 @@ class Package_Manager {
 	 * @since 1.0.0
 	 */
 	public function get_package_info( $slug ) {
+		if ( ! upserv_is_valid_package_slug( $slug ) ) {
+			return false;
+		}
+
 		$package_info = wp_cache_get( 'package_info_' . $slug, 'updatepulse-server' );
 
 		if ( false !== $package_info ) {
@@ -1281,11 +1307,11 @@ class Package_Manager {
 			 */
 			$package_info = apply_filters( 'upserv_package_manager_get_package_info', $package_info, $slug );
 		} else {
-			$package_directory = Data_Manager::get_data_dir( 'packages' );
+			$package_path = upserv_get_validated_package_path( $slug, true );
 
-			if ( file_exists( $package_directory . $slug . '.zip' ) ) {
+			if ( $package_path ) {
 				$package = $this->get_package(
-					$package_directory . $slug . '.zip',
+					$package_path,
 					$slug
 				);
 
@@ -1296,7 +1322,7 @@ class Package_Manager {
 						$package_info['type'] = 'unknown';
 					}
 
-					$file_path                          = $package_directory . $slug . '.zip';
+					$file_path                          = $package_path;
 					$package_info['file_name']          = $slug . '.zip';
 					$package_info['file_path']          = $file_path;
 					$package_info['file_size']          = $package->get_file_size();
@@ -1379,13 +1405,17 @@ class Package_Manager {
 		if ( is_dir( $package_directory ) && ! empty( $package_paths ) ) {
 
 			foreach ( $package_paths as $package_path ) {
-				$package = $this->get_package(
+				$path_slug      = basename( $package_path, '.zip' );
+				$validated_path = upserv_get_validated_package_path( $path_slug, true );
+
+				if ( ! $validated_path || realpath( $package_path ) !== realpath( $validated_path ) ) {
+					continue;
+				}
+
+				$package_path = $validated_path;
+				$package      = $this->get_package(
 					$package_path,
-					str_replace(
-						array( trailingslashit( $package_directory ), '.zip' ),
-						array( '', '' ),
-						$package_path
-					)
+					$path_slug
 				);
 
 				if ( ! $package ) {
@@ -1415,12 +1445,17 @@ class Package_Manager {
 					continue;
 				}
 
-				$slug                                    = $meta['slug'];
-				$file_path                               = $package_directory . $slug . '.zip';
+				$slug      = isset( $meta['slug'] ) ? $meta['slug'] : false;
+				$file_path = upserv_get_validated_package_path( $slug, true );
+
+				if ( ! $file_path || realpath( $package_path ) !== realpath( $file_path ) ) {
+					continue;
+				}
+
 				$packages[ $slug ]                       = $meta;
 				$packages[ $slug ]['metadata']           = $this->get_package_metadata( $slug );
 				$packages[ $slug ]['file_name']          = $slug . '.zip';
-				$packages[ $slug ]['file_path']          = $package_directory . $slug . '.zip';
+				$packages[ $slug ]['file_path']          = $file_path;
 				$packages[ $slug ]['file_size']          = $package->get_file_size();
 				$packages[ $slug ]['file_last_modified'] = $package->get_last_modified();
 				$packages[ $slug ]['etag']               = hash_file( 'md5', $file_path );
@@ -1593,6 +1628,11 @@ class Package_Manager {
 	 * @since 1.0.0
 	 */
 	public function get_package_metadata( $package_slug, $json_encode = false ) {
+
+		if ( ! upserv_is_valid_package_slug( $package_slug ) ) {
+			return $json_encode ? '{}' : array();
+		}
+
 		$data = wp_cache_get( 'package_metadata_' . $package_slug, 'updatepulse-server' );
 
 		if ( $data ) {
@@ -1639,6 +1679,11 @@ class Package_Manager {
 	 * @since 1.0.0
 	 */
 	public function set_package_metadata( $package_slug, $metadata ) {
+
+		if ( ! upserv_is_valid_package_slug( $package_slug ) ) {
+			return false;
+		}
+
 		WP_Filesystem();
 
 		global $wp_filesystem;
@@ -1731,6 +1776,50 @@ class Package_Manager {
 	/*******************************************************************
 	 * Protected methods
 	 *******************************************************************/
+
+	/**
+	 * Resolve a download archive within a permitted plugin data directory.
+	 *
+	 * Package downloads live in the packages directory. Archives assembled for
+	 * an administrative bulk download live temporarily in the tmp directory.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param mixed $archive_path Candidate archive path.
+	 * @return string|false Canonical contained path, or false.
+	 */
+	protected function get_contained_download_path( $archive_path ) {
+
+		if ( ! is_string( $archive_path ) || ! is_file( $archive_path ) || ! is_readable( $archive_path ) ) {
+			return false;
+		}
+
+		$resolved_path = realpath( $archive_path );
+
+		if ( false === $resolved_path ) {
+			return false;
+		}
+
+		$resolved_path = wp_normalize_path( $resolved_path );
+
+		foreach ( array( 'packages', 'tmp' ) as $directory_type ) {
+			$root = realpath( Data_Manager::get_data_dir( $directory_type ) );
+
+			if ( false === $root ) {
+				continue;
+			}
+
+			$root            = trailingslashit( wp_normalize_path( $root ) );
+			$comparison_root = '\\' === DIRECTORY_SEPARATOR ? strtolower( $root ) : $root;
+			$comparison_path = '\\' === DIRECTORY_SEPARATOR ? strtolower( $resolved_path ) : $resolved_path;
+
+			if ( 0 === strpos( $comparison_path, $comparison_root ) ) {
+				return $resolved_path;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Get directory size in MB

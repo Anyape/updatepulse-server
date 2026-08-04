@@ -89,6 +89,14 @@ class Nonce {
 	 */
 	protected static $private_keys;
 
+	/**
+	 * Key proven by the current Nonce API request signature.
+	 *
+	 * @var array|false
+	 * @since 1.1.0
+	 */
+	protected static $authenticated_key = false;
+
 	/*******************************************************************
 	 * Public methods
 	 *******************************************************************/
@@ -200,34 +208,61 @@ class Nonce {
 			unset( $payload['action'] );
 
 			/**
-			 * Filter the payload sent to the Nonce API.
+			 * Validate security-sensitive authorization intent before nonce creation.
 			 *
-			 * @param array $payload The payload sent to the Nonce API
-			 * @param string $method The api action - `token` or `nonce`
+			 * Ordinary custom nonce data remains opaque. API owners use this filter
+			 * to prove and normalize claims that would grant access to their API.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param true|\WP_Error $validation True or an authorization error.
+			 * @param array          $payload    The unmodified Nonce API payload.
+			 * @param string         $method     The API action, `token` or `nonce`.
 			 */
-			$payload = apply_filters( 'upserv_nonce_api_payload', $payload, $method );
+			$validation = apply_filters(
+				'upserv_nonce_api_payload_validation',
+				true,
+				$payload,
+				$method
+			);
 
-			if (
-				is_string( $wp->query_vars['action'] ) &&
-				method_exists(
-					__CLASS__,
-					'generate_' . $wp->query_vars['action'] . '_api_response'
-				)
-			) {
-				$method   = 'generate_' . $wp->query_vars['action'] . '_api_response';
-				$response = self::$method( $payload );
+			if ( is_wp_error( $validation ) ) {
+				$response = array(
+					'code'    => 'invalid_parameters',
+					'message' => __( 'Malformed request.', 'updatepulse-server' ),
+				);
+			} else {
 
-				if ( $response ) {
-					$code                     = 200;
-					$response['time_elapsed'] = Utils::get_time_elapsed();
-				} else {
-					$code     = 500;
-					$response = array(
-						'code'    => 'internal_error',
-						'message' => __( 'Internal Error - nonce insert error', 'updatepulse-server' ),
-					);
+				/**
+				 * Filter the payload sent to the Nonce API.
+				 *
+				 * @param array $payload The payload sent to the Nonce API
+				 * @param string $method The api action - `token` or `nonce`
+				 */
+				$payload = apply_filters( 'upserv_nonce_api_payload', $payload, $method );
 
-					Utils::php_log( __METHOD__ . ' wpdb::insert error' );
+				if (
+					is_string( $wp->query_vars['action'] ) &&
+					method_exists(
+						__CLASS__,
+						'generate_' . $wp->query_vars['action'] . '_api_response'
+					)
+				) {
+					$method   = 'generate_' . $wp->query_vars['action'] . '_api_response';
+					$response = self::$method( $payload );
+
+					if ( $response ) {
+						$code                     = 200;
+						$response['time_elapsed'] = Utils::get_time_elapsed();
+					} else {
+						$code     = 500;
+						$response = array(
+							'code'    => 'internal_error',
+							'message' => __( 'Internal Error - nonce insert error', 'updatepulse-server' ),
+						);
+
+						Utils::php_log( __METHOD__ . ' wpdb::insert error' );
+					}
 				}
 			}
 		}
@@ -354,6 +389,49 @@ class Nonce {
 	 */
 	public static function init_auth( $private_keys ) {
 		self::$private_keys = $private_keys;
+	}
+
+	/**
+	 * Match the authenticated Nonce API key against a specific key set.
+	 *
+	 * This intentionally bypasses the merged-key authorization filter so API
+	 * owners can prove that a signature belongs to their own configured keys.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param array $private_keys Private API keys indexed by key ID.
+	 * @return array|false Authenticated key data, or false.
+	 */
+	public static function authenticate_api_request( $private_keys ) {
+		if ( ! self::$authenticated_key ) {
+			return false;
+		}
+
+		$key_id = self::$authenticated_key['id'];
+
+		return isset( $private_keys[ $key_id ]['key'] ) && hash_equals( self::$authenticated_key['key'], $private_keys[ $key_id ]['key'] ) ? array(
+			'id'     => $key_id,
+			'access' => isset( $private_keys[ $key_id ]['access'] ) && is_array( $private_keys[ $key_id ]['access'] ) ? $private_keys[ $key_id ]['access'] : array(),
+		) : false;
+	}
+
+	/**
+	 * Determine whether requested access is contained by configured access.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param array $requested_access  Requested access entries.
+	 * @param array $configured_access Configured access entries.
+	 * @return bool Whether every requested entry is configured.
+	 */
+	public static function is_access_subset( $requested_access, $configured_access ) {
+		foreach ( $requested_access as $access ) {
+			if ( ! is_string( $access ) || ( ! in_array( 'all', $configured_access, true ) && ! in_array( $access, $configured_access, true ) ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -835,6 +913,8 @@ class Nonce {
 		$credentials  = array();
 		$current_time = time();
 
+		self::$authenticated_key = false;
+
 		if ( ! empty( $_SERVER['HTTP_X_UPDATEPULSE_API_SIGNATURE'] ) ) {
 			$sign = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_UPDATEPULSE_API_SIGNATURE'] ) );
 		} else {
@@ -888,6 +968,13 @@ class Nonce {
 				$payload
 			);
 			$auth    = hash_equals( $values['signature'], $sign );
+
+			if ( $auth ) {
+				self::$authenticated_key = array(
+					'id'  => $key_id,
+					'key' => self::$private_keys[ $key_id ]['key'],
+				);
+			}
 		}
 
 		/**

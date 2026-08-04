@@ -164,6 +164,32 @@ class Zip_Package_Manager {
 
 		$return        = true;
 		$error_message = __METHOD__ . ': ';
+		$tmp_root      = $this->resolve_root( $this->tmp_dir );
+		$packages_root = $this->resolve_root( $this->packages_dir );
+		$tmp_archive   = false;
+		$extraction    = false;
+		$archive       = false;
+
+		if ( ! upserv_is_valid_package_slug( $this->package_slug ) ) {
+			$return         = false;
+			$error_message .= __( 'Invalid package.', 'updatepulse-server' );
+		}
+
+		if ( $return && ( ! $tmp_root || ! $packages_root ) ) {
+			$return         = false;
+			$error_message .= __( 'Invalid package.', 'updatepulse-server' );
+		}
+
+		if ( $return ) {
+			$tmp_archive = $this->build_contained_path( $tmp_root, $this->package_slug . '.zip' );
+			$extraction  = $this->build_contained_path( $tmp_root, $this->package_slug );
+			$archive     = $this->build_contained_path( $packages_root, $this->package_slug . '.zip' );
+
+			if ( ! $tmp_archive || ! $extraction || ! $archive ) {
+				$return         = false;
+				$error_message .= __( 'Invalid package.', 'updatepulse-server' );
+			}
+		}
 
 		if ( $this->received_package_path instanceof WP_Error ) {
 			$return         = false;
@@ -182,11 +208,11 @@ class Zip_Package_Manager {
 
 		if ( $return ) {
 			$source      = $this->received_package_path;
-			$destination = $this->tmp_dir . $this->package_slug . '.zip';
+			$destination = $tmp_archive;
 			$result      = $wp_filesystem->move( $source, $destination, true );
 
 			if ( $result ) {
-				$repack_result = $this->repack_package();
+				$repack_result = $this->repack_package( $tmp_archive, $extraction );
 
 				if ( ! $repack_result ) {
 					$return         = false;
@@ -208,8 +234,8 @@ class Zip_Package_Manager {
 		}
 
 		if ( $return ) {
-			$source      = $this->tmp_dir . $this->package_slug . '.zip';
-			$destination = trailingslashit( $this->packages_dir ) . $this->package_slug . '.zip';
+			$source      = $tmp_archive;
+			$destination = $archive;
 			$result      = $wp_filesystem->move( $source, $destination, true );
 
 			if ( ! $result ) {
@@ -230,7 +256,20 @@ class Zip_Package_Manager {
 
 			Utils::php_log( $error_message );
 
-			$wp_filesystem->delete( $this->received_package_path, true );
+			if ( $wp_filesystem ) {
+
+				if ( $tmp_archive ) {
+					$wp_filesystem->delete( $tmp_archive, false );
+				}
+
+				if ( $extraction ) {
+					$wp_filesystem->delete( $extraction, true );
+				}
+			}
+
+			if ( is_string( $this->received_package_path ) && is_file( $this->received_package_path ) ) {
+				wp_delete_file( $this->received_package_path );
+			}
 		}
 
 		return $return;
@@ -245,16 +284,17 @@ class Zip_Package_Manager {
 	 *
 	 * Repack the received package by unzipping and zipping it again.
 	 *
+	 * @param string $archive_path Validated temporary archive path.
+	 * @param string $extraction_path Validated extraction directory path.
 	 * @return bool True on success, false on failure.
 	 * @since 1.0.0
 	 */
-	protected function repack_package() {
+	protected function repack_package( $archive_path, $extraction_path ) {
 		WP_Filesystem();
 
 		global $wp_filesystem;
 
-		$temp_path    = trailingslashit( $this->tmp_dir . $this->package_slug );
-		$archive_path = $this->tmp_dir . $this->package_slug . '.zip';
+		$temp_path = trailingslashit( $extraction_path );
 
 		if ( ! is_dir( $temp_path ) ) {
 			wp_mkdir_p( $temp_path );
@@ -329,5 +369,59 @@ class Zip_Package_Manager {
 		}
 
 		return $return;
+	}
+
+	/**
+	 * Resolve and normalize an existing configured root directory.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $root Directory path.
+	 * @return string|false Canonical root path, or false.
+	 */
+	protected function resolve_root( $root ) {
+		$resolved_root = is_string( $root ) ? realpath( $root ) : false;
+
+		if ( false === $resolved_root || ! is_dir( $resolved_root ) ) {
+			return false;
+		}
+
+		return trailingslashit( wp_normalize_path( $resolved_root ) );
+	}
+
+	/**
+	 * Build a path and prove that it remains beneath a canonical root.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $root          Canonical root with a trailing separator.
+	 * @param string $relative_path Relative path beneath the root.
+	 * @return string|false Contained path, or false.
+	 */
+	protected function build_contained_path( $root, $relative_path ) {
+		$path            = wp_normalize_path( $root . ltrim( $relative_path, '/\\' ) );
+		$comparison_root = '\\' === DIRECTORY_SEPARATOR ? strtolower( $root ) : $root;
+		$comparison_path = '\\' === DIRECTORY_SEPARATOR ? strtolower( $path ) : $path;
+
+		if ( 0 !== strpos( $comparison_path, $comparison_root ) || is_link( $path ) ) {
+			return false;
+		}
+
+		if ( file_exists( $path ) ) {
+			$resolved_path = realpath( $path );
+
+			if ( false === $resolved_path ) {
+				return false;
+			}
+
+			$resolved_path = wp_normalize_path( $resolved_path );
+			$resolved_path = '\\' === DIRECTORY_SEPARATOR ? strtolower( $resolved_path ) : $resolved_path;
+
+			if ( 0 !== strpos( $resolved_path, $comparison_root ) ) {
+				return false;
+			}
+		}
+
+		return $path;
 	}
 }

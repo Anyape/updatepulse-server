@@ -32,6 +32,8 @@ UpdatePulse Server offers a series of functions, actions and filters for develop
         * [upserv\_force\_cleanup\_cache](#upserv_force_cleanup_cache)
         * [upserv\_force\_cleanup\_logs](#upserv_force_cleanup_logs)
         * [upserv\_force\_cleanup\_tmp](#upserv_force_cleanup_tmp)
+        * [upserv\_is\_valid\_package\_slug](#upserv_is_valid_package_slug)
+        * [upserv\_get\_validated\_package\_path](#upserv_get_validated_package_path)
         * [upserv\_get\_local\_package\_path](#upserv_get_local_package_path)
         * [upserv\_download\_local\_package](#upserv_download_local_package)
         * [upserv\_delete\_package](#upserv_delete_package)
@@ -259,25 +261,29 @@ if ( ! empty( $curl_error ) ) {
 ___
 ### Public API
 
-The public API requires authorization through a nonce or token acquired via the [Nonce API](https://github.com/anyape//blob/master/misc.md#nonce-api).
+The public API requires a server-attested package download token. The token is bound to the `download` action, one package type, and one package slug; changing any of these values invalidates it.
 
-It provides a single operations: `download`.  
+It provides a single operation: `download`.
 
-**The full URL is more easily acquired through the [signed_url](#signed_url) operation of the Private API. The URL provided by the `signed_url` operation already contains a valid token.**  
+The recommended flow is the [signed_url](#signed_url) operation of the Private API. Its response contains the complete URL and token. The Package API token used to call `signed_url` must grant `signed_url` or `all` access and must satisfy the configured Package API IP allowlist.
 
-The URL can also be built manually, with a token can also be acquired with the following required parameters:
+The same download authorization can be requested directly from the [Nonce API](https://github.com/anyape/updatepulse-server/blob/main/docs/misc.md#nonce-api). This is a supported flow, not a deprecated compatibility path. Sign the complete payload with a Package API key that grants `signed_url` or `all` access:
 
 ```php
 $payload = array(
     'data' => array(
-        'package_slug' => 'package-slug', // The slug of the package  
-        'type'         => 'package-type', // The type of package (plugin, theme, generic)
-        'actions'      => array(          // The actions the token can be used for
+        'package_id' => 'package-slug', // The exact package slug.
+        'type'       => 'plugin',       // One of plugin, theme, or generic.
+        'actions'    => array(
             'download',
         ),
     ),
 );
 ```
+
+UpdatePulse Server verifies the request signature against the Package API key set, checks `signed_url` access and the Package API IP allowlist, verifies that the exact package exists with the requested type, and adds the server-attested download claim. The supplied `actions`, `type`, and `package_id` values remain in the token data for response compatibility, but the public downloader authorizes only from the server-attested claim.
+
+These Package API signed-download flows are independent from ordinary WordPress update downloads. The Update API continues to issue its own package download URLs. A package whose `require_license` metadata is absent or false does not require license data, a Package API key, or a `signed_url` exchange. A package whose `require_license` metadata is true continues to use the existing Update API license key and signature checks.
 
 ___
 #### download
@@ -1013,7 +1019,7 @@ Code `404` - **failure** (no result):
 ___
 #### signed_url
 
-The `signed_url` operation returns a public URL signed with a token to download a package with the `download` [operation](#download). By default, the token is reusable and the URL is valid for 60 minutes. If the package does not exist on the file system or in the Version Control System, the operation fails.
+The `signed_url` operation returns a public URL signed with a token to download one exact package with the `download` [operation](#download). By default, the token is reusable and the URL is valid for 60 minutes. The private Package API token must grant `signed_url` or `all` access and satisfy the configured IP allowlist. If the package does not exist or its stored type does not match the URL target, the operation fails.
 
 ```php
 $url = 'https://domain.tld/updatepulse-server-package-api/package-type/package-slug/'; // Replace domain.tld with the domain where UpdatePulse Server is installed, package-type with the type of package (plugin, theme, generic), and package-slug with the slug of the package  
@@ -1329,6 +1335,32 @@ Force clean up the `tmp` plugin data.
 
 **Return value**
 > (bool) `true` in case of success, `false` otherwise
+
+___
+### upserv_is_valid_package_slug
+
+```php
+upserv_is_valid_package_slug( string $package_slug );
+```
+
+**Description**
+Validate a package slug for API and filesystem use. Accepted slugs use letters, numbers, `.`, `_`, `-`, `,`, `+`, or `!`; empty values, the exact values `.` and `..`, separators, encoded path syntax, control characters, and other characters are rejected.
+
+**Return value**
+> (bool) whether the package slug is valid
+
+___
+### upserv_get_validated_package_path
+
+```php
+upserv_get_validated_package_path( string $package_slug, bool $must_exist = true );
+```
+
+**Description**
+Build a package ZIP path beneath the canonical UpdatePulse Server packages directory. Existing paths are resolved and rejected when a symlink or other filesystem indirection escapes that directory.
+
+**Return value**
+> (string|false) the contained package path, or `false` when the slug/path is invalid or a required archive does not exist
 
 ___
 ### upserv_get_local_package_path
@@ -2900,7 +2932,7 @@ apply_filters( 'upserv_package_signed_url_token', $token, string $package_slug, 
 ```
 
 **Description**  
-Filter the token used to sign the URL.  
+Filter the token used to sign the URL. A replacement token must authorize the same exact `download` action, package type, and package slug through a trusted `upserv_fetch_nonce` implementation; a generic custom-data nonce is not sufficient.
 
 **Parameters**  
 `$token`

@@ -139,6 +139,7 @@ This section describes how to install the plugin and get it working.
 == Changelog ==
 
 = 1.1.0 =
+* Harden Package and Nonce API authorization and constrain package archive operations to validated data directories.
 * Add Gitea (thx @relic-se on Github), Forgejo and Gitee VCS providers
 * Convert Bitbucket authentication from deprecated App Password to API Tokens with scopes. This is a breaking change for users using Bitbucket with App Passwords, who will need to create API Tokens and update their VCS settings.
 * AGENTS.md guidelines & Minor fixes

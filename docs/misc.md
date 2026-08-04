@@ -44,6 +44,7 @@ UpdatePulse Server provides an API and offers a series of functions, actions and
         * [upserv\_mu\_plugin\_registration\_classes](#upserv_mu_plugin_registration_classes)
         * [upserv\_is\_api\_request](#upserv_is_api_request)
         * [upserv\_scripts\_l10n](#upserv_scripts_l10n)
+        * [upserv\_nonce\_api\_payload\_validation](#upserv_nonce_api_payload_validation)
         * [upserv\_nonce\_api\_payload](#upserv_nonce_api_payload)
         * [upserv\_nonce\_api\_code](#upserv_nonce_api_code)
         * [upserv\_nonce\_api\_response](#upserv_nonce_api_response)
@@ -135,6 +136,14 @@ $payload = array(
 ```
 
 Please note that **boolean values are NOT supported in the `data` array**: if the payload needs to include such value type, developers must use values from the following table:
+
+Ordinary custom `data` remains opaque and is stored unchanged. Security-sensitive authorization intent is validated before a nonce is created:
+
+- `api=package` and `data[package_api]` must be signed by the matching configured Package API key; identity and access are replaced with the current server configuration.
+- `api=license` and `data[license_api]` must be signed by the matching configured License API key; identity and access are replaced with the current server configuration.
+- A complete package download intent (`data[actions]` containing `download`, plus `data[type]` and `data[package_id]`) must be signed by a Package API key granting `signed_url` or `all`, pass the Package API IP allowlist, and name an existing exact target. The server adds the claim used by the public downloader.
+
+Mismatched key IDs, access not granted by current configuration, cross-API credentials, disallowed IPs, and invalid targets return HTTP `400` with `invalid_parameters`; no nonce is stored. Partial uses of `actions`, `type`, or `package_id`, non-download actions, and unrelated custom keys are not treated as authorization intent and remain unchanged.
 
 | Value | Type | Boolean value |
 | --- | --- | --- |
@@ -1076,6 +1085,26 @@ Filter the internationalization strings passed to the frontend scripts.
 
 `$handle`
 > (string) the handle of the script
+
+___
+### upserv_nonce_api_payload_validation
+
+```php
+apply_filters( 'upserv_nonce_api_payload_validation', true|WP_Error $validation, array $payload, string $action );
+```
+
+**Description**
+Validate security-sensitive authorization intent before the Nonce API payload is filtered or stored. Return a `WP_Error` to reject the request with `invalid_parameters` and prevent nonce creation. Ordinary custom data should pass through with `true`.
+
+**Parameters**
+`$validation`
+> (true|WP_Error) the validation result
+
+`$payload`
+> (array) the unmodified Nonce API payload
+
+`$action`
+> (string) the API action, `token` or `nonce`
 
 ___
 ### upserv_nonce_api_payload
