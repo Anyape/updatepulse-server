@@ -185,7 +185,7 @@ MAINFILE="${MAINFILE:-$PLUGINSLUG.php}"
 
 readonly GITPATH="$DIR"
 readonly SVNURL="https://plugins.svn.wordpress.org/$PLUGINSLUG"
-readonly DISTIGNORE="$GITPATH/.distignore"
+readonly DISTIGNORE="$GITPATH/deploy.distignore"
 
 for command in git svn rsync tar zip awk grep; do
 	command -v "$command" >/dev/null 2>&1 || die "Command '$command' not found."
@@ -341,7 +341,7 @@ readonly ZIP_PATH="$TEMP_ROOT/$PLUGINSLUG.zip"
 run mkdir -p "$SOURCE_PATH" "$DIST_PATH"
 log_command git -C "$GITPATH" archive --format=tar "$RELEASE_COMMIT"
 git -C "$GITPATH" archive --format=tar "$RELEASE_COMMIT" | tar -xf - -C "$SOURCE_PATH"
-run rsync --archive --delete --exclude-from="$DISTIGNORE" "$SOURCE_PATH/" "$DIST_PATH/"
+run rsync --archive --delete --exclude-from="$SOURCE_PATH/deploy.distignore" "$SOURCE_PATH/" "$DIST_PATH/"
 
 (
 	cd "$DIST_ROOT"
