@@ -317,13 +317,13 @@ class Package_Manager {
 	}
 
 	/**
-	 * Set page options
+	 * Pass through a submitted page option value.
 	 *
-	 * Sets screen options for the plugin page.
+	 * WordPress performs the actual option persistence after this filter returns.
 	 *
-	 * @param mixed $status Screen option status.
+	 * @param mixed  $status Screen option status.
 	 * @param string $option Screen option name.
-	 * @param mixed $value Screen option value.
+	 * @param mixed  $value Screen option value.
 	 * @return mixed Screen option value.
 	 * @since 1.0.0
 	 */
@@ -354,7 +354,7 @@ class Package_Manager {
 	 *
 	 * Sets tab states for the plugin page.
 	 *
-	 * @param array $states Existing tab states.
+	 * @param array  $states Existing tab states.
 	 * @param string $page Current page.
 	 * @return array Modified tab states.
 	 * @since 1.0.0
@@ -409,7 +409,7 @@ class Package_Manager {
 	 *
 	 * @param string $safe_slug Safe slug of the package.
 	 * @param string $type Type of the package.
-	 * @param array $info Additional information.
+	 * @param array  $info Additional information.
 	 * @since 1.0.0
 	 */
 	public function upserv_download_remote_package_aborted( $safe_slug, $type, $info ) {
@@ -886,7 +886,7 @@ class Package_Manager {
 	 * Deletes multiple packages in bulk.
 	 *
 	 * @param array $package_slugs Package slugs to delete.
-	 * @return array|false Deleted package slugs or false if no packages were deleted.
+	 * @return array|false|null Deleted slugs, false when none were deleted, or null when no package files exist.
 	 * @since 1.0.0
 	 */
 	public function delete_packages_bulk( $package_slugs = array() ) {
@@ -985,7 +985,7 @@ class Package_Manager {
 				$result = $update_server->remove_package( $slug );
 
 				/**
-				 * Fired after a package has been deleted.
+				 * Fired after a package deletion has been attempted.
 				 *
 				 * @param string $slug The slug of the deleted package.
 				 * @param bool $result Whether the package was successfully deleted.
@@ -1001,8 +1001,7 @@ class Package_Manager {
 					Scheduler::get_instance()->unschedule_all_actions( $scheduled_hook );
 
 					/**
-					 * Fired after a remote check schedule event has been unscheduled for a package.
-					 * Fired during client update API request.
+					 * Fired during successful package deletion after its remote check event is unscheduled.
 					 *
 					 * @param string $package_slug    The slug of the package for which a remote check event has been unscheduled
 					 * @param string $scheduled_hook  The remote check event hook that has been unscheduled
@@ -1133,8 +1132,8 @@ class Package_Manager {
 	 *
 	 * Triggers the download of the specified archive.
 	 *
-	 * @param string $archive_name Archive name.
-	 * @param string $archive_path Archive path.
+	 * @param string  $archive_name Archive name.
+	 * @param string  $archive_path Archive path.
 	 * @param boolean $exit_or_die Whether to exit or die after download.
 	 * @since 1.0.0
 	 */
@@ -1233,7 +1232,7 @@ class Package_Manager {
 		}
 
 		/**
-		 * Fired after packages have been downloaded.
+		 * Fired after package download handling completes.
 		 *
 		 * @param string $archive_name The name of the archive.
 		 * @param string $archive_path The path to the archive.
@@ -1588,7 +1587,7 @@ class Package_Manager {
 	 *
 	 * Retrieves metadata for a package.
 	 *
-	 * @param string $package_slug Package slug.
+	 * @param string  $package_slug Package slug.
 	 * @param boolean $json_encode Whether to return JSON encoded data.
 	 * @return array|string Package metadata.
 	 * @since 1.0.0
@@ -1634,8 +1633,8 @@ class Package_Manager {
 	 *
 	 * Sets metadata for a package.
 	 *
-	 * @param string $package_slug Package slug.
-	 * @param array $metadata Package metadata.
+	 * @param string     $package_slug Package slug.
+	 * @param array|null $metadata Package metadata, or an empty value to delete it.
 	 * @return boolean True if successful, false otherwise.
 	 * @since 1.0.0
 	 */
@@ -1652,9 +1651,9 @@ class Package_Manager {
 		/**
 		 * Filter the metadata to be set for a package.
 		 *
-		 * @param array $metadata Package metadata.
+		 * @param array|null $metadata Package metadata, or an empty value to delete it.
 		 * @param string $package_slug Package slug.
-		 * @return array The filtered package metadata.
+		 * @return array|null The filtered package metadata, or an empty value to delete it.
 		 * @since 1.0.0
 		 */
 		$data = apply_filters( 'upserv_set_package_metadata_data', $metadata, $package_slug );
@@ -1848,7 +1847,7 @@ class Package_Manager {
 		}
 
 		/**
-		 * Fired after package options have been updated.
+		 * Fired after the package options form has been processed.
 		 *
 		 * @param array|string $result The result of the update operation.
 		 * @since 1.0.0

@@ -3,25 +3,25 @@
  * UpdatePulse Server Uninstall Script
  *
  * This file runs when the plugin is uninstalled through the WordPress admin.
- * It cleans up all data, files, cron jobs, and database tables created by the plugin.
+ * It removes plugin options, tables, generated files, and plugin-owned scheduled work.
  *
  * @package UPServ
  * @since 1.0.0
  */
 
-// Prevent direct access and ensure this is a proper WordPress uninstall request
+// Prevent direct access and ensure this is a proper WordPress uninstall request.
 if ( ! defined( 'ABSPATH' ) || ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit; // Exit if accessed directly}
+	exit; // Exit if accessed directly.
 }
 
 /**
  * Main uninstallation function for the UpdatePulse Server plugin.
  *
- * Removes all plugin data including:
- * - Scheduled cron jobs
+ * Removes the following plugin-owned resources:
+ * - Plugin-prefixed WordPress cron events
  * - Must-use plugin optimizer files
  * - Upload directory files and folders
- * - Action Scheduler entries
+ * - Scheduled cleanup actions
  * - Database options
  * - Custom database tables
  *

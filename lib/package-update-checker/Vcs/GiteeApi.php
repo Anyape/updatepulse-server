@@ -71,6 +71,8 @@ if ( ! class_exists( GiteeApi::class, false ) ) :
 			$endpoint = self::API_BASE_URL . '/user';
 			$response = $instance->api( $endpoint, array(), true );
 
+			php_log( $response );
+
 			if ( is_wp_error( $response ) || ! isset( $response->login ) ) {
 				return false;
 			}

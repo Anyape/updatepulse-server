@@ -161,7 +161,7 @@ class API_Manager {
 	 *
 	 * Set active state for API tab in admin navigation.
 	 *
-	 * @param array $states Existing tab states.
+	 * @param array  $states Existing tab states.
 	 * @param string $page Current admin page.
 	 * @return array Modified tab states.
 	 * @since 1.0.0
@@ -507,7 +507,7 @@ class API_Manager {
 		}
 
 		/**
-		 * Fired after API options have been updated.
+		 * Fired after the API options form has been processed.
 		 *
 		 * @param array $errors Array of errors that occurred during the update process
 		 * @since 1.0.0

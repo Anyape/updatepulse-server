@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use WP_List_Table;
 use DateTimeZone;
+use Anyape\UpdatePulse\Server\Manager\Package_Manager;
 
 /**
  * Packages Table class
@@ -43,7 +44,7 @@ class Packages_Table extends WP_List_Table {
 	/**
 	 * Package manager instance
 	 *
-	 * @var object
+	 * @var Package_Manager
 	 * @since 1.0.0
 	 */
 	protected $package_manager;
@@ -51,7 +52,7 @@ class Packages_Table extends WP_List_Table {
 	/**
 	 * Constructor
 	 *
-	 * @param object $package_manager The package manager instance
+	 * @param Package_Manager $package_manager The package manager instance.
 	 * @since 1.0.0
 	 */
 	public function __construct( $package_manager ) {
@@ -111,7 +112,7 @@ class Packages_Table extends WP_List_Table {
 	 *
 	 * Default handler for columns without specific renderers.
 	 *
-	 * @param array $item The current row item
+	 * @param array  $item The current row item
 	 * @param string $column_name The current column name
 	 * @return mixed Column content
 	 * @since 1.0.0

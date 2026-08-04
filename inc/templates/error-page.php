@@ -1,4 +1,15 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Error page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string $title   Browser page title.
+ * @var string $heading Error heading.
+ * @var string $message Error message.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <html>

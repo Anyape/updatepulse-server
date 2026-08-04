@@ -1,4 +1,20 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Packages administration page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string                                          $header         Rendered admin settings header.
+ * @var \Anyape\UpdatePulse\Server\Table\Packages_Table $packages_table Packages list table.
+ * @var string                                          $cache_size     Formatted cache directory size.
+ * @var string                                          $logs_size      Formatted logs directory size.
+ * @var array                                           $package_rows   Prepared package records.
+ * @var string                                          $packages_dir   Package storage directory.
+ * @var array                                           $vcs_options    Available VCS configurations.
+ * @var array                                           $options        Package settings.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div class="wrap upserv-wrap">

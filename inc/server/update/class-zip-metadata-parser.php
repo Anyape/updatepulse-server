@@ -73,7 +73,7 @@ class Zip_Metadata_Parser {
 	 *
 	 * Path to the Zip archive that contains the package.
 	 *
-	 * @var string
+	 * @var string|null
 	 * @since 1.0.0
 	 */
 	protected $filename;
@@ -91,7 +91,7 @@ class Zip_Metadata_Parser {
 	 *
 	 * Cache object.
 	 *
-	 * @var object
+	 * @var Cache|null
 	 * @since 1.0.0
 	 */
 	protected $cache;
@@ -111,9 +111,9 @@ class Zip_Metadata_Parser {
 	 *
 	 * Get the metadata from a zip file.
 	 *
-	 * @param string $slug Package slug.
-	 * @param string $filename Path to the Zip archive.
-	 * @param object $cache Cache object.
+	 * @param string|null $slug Package slug.
+	 * @param string      $filename Path to the Zip archive.
+	 * @param Cache|null  $cache Cache object.
 	 * @since 1.0.0
 	 */
 	public function __construct( $slug, $filename, $cache = null ) {
@@ -183,7 +183,7 @@ class Zip_Metadata_Parser {
 	protected function set_metadata() {
 		$cache_key = self::build_cache_key( $this->slug, $this->filename );
 
-		//Try the cache first.
+		// Try the cache first.
 		if ( isset( $this->cache ) ) {
 			$this->metadata = $this->cache->get( $cache_key );
 		}
@@ -203,7 +203,7 @@ class Zip_Metadata_Parser {
 				}
 			);
 
-			//Update cache.
+			// Update cache.
 			if ( isset( $this->cache ) ) {
 				$this->cache->set( $cache_key, $this->metadata, static::$cache_time );
 			}
@@ -296,13 +296,12 @@ class Zip_Metadata_Parser {
 	}
 
 	/**
-	 * Set theme details URL
+	 * Set the package details URL fallback.
 	 *
-	 * Determine the details url for themes.
+	 * Use the package homepage when no explicit details URL is available.
 	 *
-	 * Theme metadata should include a "details_url" that specifies the page to display
-	 * when the user clicks "View version x.y.z details". If the developer didn't provide
-	 * it by setting the "Details URI" header, we'll default to the theme homepage ( "Theme URI" ).
+	 * Package metadata may include a "details_url" that specifies the page to display
+	 * for additional details. If it is absent, default to the package homepage.
 	 *
 	 * @since 1.0.0
 	 */
@@ -319,7 +318,7 @@ class Zip_Metadata_Parser {
 	/**
 	 * Set readme sections
 	 *
-	 * Extract the texual information sections from a readme file.
+	 * Extract the textual information sections from a readme file.
 	 *
 	 * @see https://wordpress.org/plugins/about/readme.txt
 	 * @since 1.0.0
@@ -353,7 +352,7 @@ class Zip_Metadata_Parser {
 	 */
 	protected function set_readme_upgrade_notice() {
 
-		//Check if we have an upgrade notice for this version
+		// Check if we have an upgrade notice for this version
 		if ( isset( $this->metadata['sections']['upgrade_notice'] ) && isset( $this->metadata['version'] ) ) {
 			$regex = '@<h4>\s*'
 				. preg_quote( $this->metadata['version'], '@' )

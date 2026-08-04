@@ -23,7 +23,7 @@ class Webhook_API {
 	/**
 	 * Is doing API request
 	 *
-	 * @var bool|null
+	 * @var int|null
 	 */
 	protected static $doing_api_request = null;
 
@@ -169,12 +169,12 @@ class Webhook_API {
 	 * If no branch is specified, the request will be processed to account for events
 	 * registered to the webhook that do not have a branch associated with them.
 	 *
-	 * @param bool $process Current process status.
-	 * @param array $payload Request payload.
+	 * @param bool   $process Current process status.
+	 * @param array  $payload Request payload.
 	 * @param string $slug Package slug.
 	 * @param string $type Package type.
-	 * @param bool $package_exists Whether package already exists.
-	 * @param array $vcs_config Version control system configuration.
+	 * @param bool   $package_exists Whether package already exists.
+	 * @param array  $vcs_config Version control system configuration.
 	 * @return bool Whether to process the webhook request.
 	 */
 	public function upserv_webhook_process_request( $process, $payload, $slug, $type, $package_exists, $vcs_config ) {
@@ -190,7 +190,7 @@ class Webhook_API {
 	 *
 	 * Determine whether the current request is a Webhook API request.
 	 *
-	 * @return bool Whether the current request is a Webhook API request.
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 */
 	public static function is_doing_api_request() {
 
@@ -222,9 +222,9 @@ class Webhook_API {
 	 *
 	 * Schedule a webhook to be fired based on an event.
 	 *
-	 * @param array $payload Webhook payload data.
+	 * @param array  $payload Webhook payload data.
 	 * @param string $event_type Event type identifier.
-	 * @param bool $instant Whether to fire webhook immediately.
+	 * @param bool   $instant Whether to fire webhook immediately.
 	 * @return void|WP_Error WP_Error on failure.
 	 */
 	public function schedule_webhook( $payload, $event_type, $instant = false ) {
@@ -285,8 +285,8 @@ class Webhook_API {
 				 * Filter whether to send the webhook notification immediately.
 				 *
 				 * @param bool   $instant    Whether to send the notification immediately.
-				 * @param array  $payload    The payload of the event.
 				 * @param string $event_type The type of event.
+				 * @param array  $params     The URL, secret, encoded body, and originating action.
 				 * @return bool
 				 */
 				$instant = apply_filters(
@@ -579,7 +579,7 @@ class Webhook_API {
 						/**
 						 * Fired after scheduling a remote check event.
 						 *
-						 * @param bool   $result    Whether the event was successfully scheduled.
+						 * @param bool|int $result  The Action Scheduler ID or WordPress cron result.
 						 * @param string $slug      The slug of the package triggering the webhook.
 						 * @param int    $timestamp The timestamp when the event is scheduled to run.
 						 * @param bool   $is_cron   Whether the event is a cron job.

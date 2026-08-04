@@ -11,7 +11,7 @@ Author URI: https://froger.me/
  * Run as little as possible of the WordPress core with UpdatePulse Server actions and filters.
  * Effect:
  * - prevent inclusion of themes functions.php (parent and child)
- * - remove all core actions and filters that haven't been fired yet
+ * - remove callbacks from selected core hooks that haven't fired yet
  *
  * Place this file in a wp-content/mu-plugin folder and it will be loaded automatically.
  *
@@ -24,17 +24,17 @@ Author URI: https://froger.me/
  * - @see `upserv_mu_optimizer_ready` - action; fired when the optimizer is ready
  *
  * @see `updatepulse-server/updatepulse-server.php` and documentation for more MU plugin hooks.
-*/
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
 /**
- * Main optimization function for UpdatePulse Server API requests.
+ * Main optimization function for recognized UpdatePulse Server endpoints.
  *
- * Determines if the current request is an UpdatePulse API call and applies
- * performance optimizations by removing unnecessary WordPress hooks.
+ * Determines if the current request is eligible for optimization and removes
+ * callbacks from the configured WordPress hooks.
  *
  * @since 2.0
  *

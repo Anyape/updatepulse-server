@@ -1,4 +1,17 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * API settings page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string $header              Rendered admin settings header.
+ * @var array  $options             API settings.
+ * @var array  $license_api_actions Available License API actions.
+ * @var array  $package_api_actions Available Package API actions.
+ * @var array  $webhook_events      Available webhook events grouped by resource type.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div class="wrap upserv-wrap">

@@ -219,8 +219,8 @@ class License_Server {
 	 * Retrieve a single license by ID or license key.
 	 *
 	 * @param array $payload The query parameters containing ID or license key.
-	 * @param bool $force Whether to bypass cache.
-	 * @return object|WP_Error License object or WP_Error on failure.
+	 * @param bool  $force Whether to bypass cache.
+	 * @return object|array License object, an empty result, or validation errors.
 	 * @since 1.0.0
 	 */
 	public function read_license( $payload, $force = false ) {
@@ -283,7 +283,8 @@ class License_Server {
 	 * Update an existing license.
 	 *
 	 * @param array $payload The license data to update.
-	 * @return object|WP_Error Updated license object or WP_Error on failure.
+	 * @return object|array Updated license object or validation errors.
+	 * @throws Exception When the database update fails.
 	 * @since 1.0.0
 	 */
 	public function edit_license( $payload ) {
@@ -352,7 +353,8 @@ class License_Server {
 	 * Create a new license.
 	 *
 	 * @param array $payload The license data.
-	 * @return object|WP_Error New license object or WP_Error on failure.
+	 * @return object|array New license object or validation errors.
+	 * @throws Exception When the database insert fails.
 	 * @since 1.0.0
 	 */
 	public function add_license( $payload ) {
@@ -421,7 +423,8 @@ class License_Server {
 	 * Remove a license from the system.
 	 *
 	 * @param array $payload The license identifier data.
-	 * @return object|WP_Error Deleted license object or WP_Error on failure.
+	 * @return object|array Deleted license object or validation errors.
+	 * @throws Exception When the database deletion fails.
 	 * @since 1.0.0
 	 */
 	public function delete_license( $payload ) {
@@ -553,6 +556,7 @@ class License_Server {
 	 *
 	 * Update status of licenses that have reached their expiry date.
 	 *
+	 * @return void
 	 * @since 1.0.0
 	 */
 	public function switch_expired_licenses_status() {
@@ -607,6 +611,7 @@ class License_Server {
 				/**
 				 * Fired after editing a license record.
 				 * Fired during client license API request.
+				 * This invocation also occurs during scheduled expiry processing.
 				 *
 				 * @param mixed $item The result of the operation - a license record object or an array of errors
 				 * @param array $payload The payload of the request
@@ -632,7 +637,8 @@ class License_Server {
 	 * Bulk update status for multiple licenses.
 	 *
 	 * @param string $status The new status to set.
-	 * @param array $license_ids Optional array of license IDs to update.
+	 * @param array  $license_ids Optional array of license IDs to update.
+	 * @return void
 	 * @since 1.0.0
 	 */
 	public function update_licenses_status( $status, $license_ids = array() ) {
@@ -679,6 +685,7 @@ class License_Server {
 				/**
 				 * Fired after editing a license record.
 				 * Fired during client license API request.
+				 * This invocation also occurs during bulk status processing.
 				 *
 				 * @param mixed $item The result of the operation - a license record object or an array of errors
 				 * @param array $payload The payload of the request
@@ -704,6 +711,7 @@ class License_Server {
 	 * Delete licenses from the database.
 	 *
 	 * @param array $license_ids Optional array of license IDs to delete.
+	 * @return void
 	 * @since 1.0.0
 	 */
 	public function purge_licenses( $license_ids = array() ) {
@@ -750,6 +758,7 @@ class License_Server {
 				/**
 				 * Fired after deleting a license record.
 				 * Fired during client license API request.
+				 * This invocation also occurs during bulk purge processing.
 				 *
 				 * @param mixed $item The result of the operation - a license record object or an empty array
 				 * @param array $payload The payload of the request
@@ -1047,7 +1056,7 @@ class License_Server {
 	 * Check if license data is valid.
 	 *
 	 * @param array $license The license data to validate.
-	 * @param bool $partial Whether to perform partial validation.
+	 * @param bool  $partial Whether to perform partial validation.
 	 * @return bool|array True if valid, array of errors otherwise.
 	 * @since 1.0.0
 	 */

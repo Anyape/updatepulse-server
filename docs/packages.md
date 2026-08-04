@@ -1204,7 +1204,7 @@ ___
 ### upserv_download_remote_package
 
 ```php
-upserv_download_remote_package( string $package_slug, string $type, $vcs_url = false, $branch = 'main' );
+upserv_download_remote_package( string $package_slug, string $type = 'generic', string|false $vcs_url = false, string $branch = 'main' );
 ```
 
 **Description**  
@@ -1219,7 +1219,7 @@ If `$vcs_url` and `$branch` are provided, the plugin will attempt to get an exis
 > (string) type of the package; default to `'generic'`
 
 `$vcs_url`
-> (string) the URL of a VCS configured in UpdatePulse Server; default to `false`
+> (string|false) the URL of a VCS configured in UpdatePulse Server; default to `false`
 
 `$branch`
 > (string) the branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
@@ -1247,7 +1247,7 @@ ___
 ### upserv_download_remote_plugin
 
 ```php
-upserv_download_remote_plugin( string $package_slug, $vcs_url = false, $branch = 'main' );
+upserv_download_remote_plugin( string $package_slug, string|false $vcs_url = false, string $branch = 'main' );
 ```
 
 **Description**  
@@ -1259,19 +1259,19 @@ If `$vcs_url` and `$branch` are provided, the plugin will attempt to get an exis
 > (string) slug of the plugin package to download  
 
 `$vcs_url`
-> (string) the URL of a VCS configured in UpdatePulse Server; default to `false`
+> (string|false) the URL of a VCS configured in UpdatePulse Server; default to `false`
 
 `$branch`
 > (string) the branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
 
 **Return value**
-> (bool) `true` if the plugin package was successfully downloaded, `false` otherwise
+> (bool|WP_Error) whether the package was downloaded, or an error when the VCS information is invalid
 
 ___
 ### upserv_download_remote_theme
 
 ```php
-upserv_download_remote_theme( string $package_slug, $vcs_url = false, $branch = 'main' );
+upserv_download_remote_theme( string $package_slug, string|false $vcs_url = false, string $branch = 'main' );
 ```
 
 **Description**  
@@ -1283,13 +1283,13 @@ If `$vcs_url` and `$branch` are provided, the plugin will attempt to get an exis
 > (string) slug of the theme package to download  
 
 `$vcs_url`
-> (string) the URL of a VCS configured in UpdatePulse Server; default to `false`
+> (string|false) the URL of a VCS configured in UpdatePulse Server; default to `false`
 
 `$branch`
 > (string) the branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
 
 **Return value**
-> (bool) `true` if the theme package was successfully downloaded, `false` otherwise
+> (bool|WP_Error) whether the package was downloaded, or an error when the VCS information is invalid
 
 ___
 ### upserv_force_cleanup_cache
@@ -1351,18 +1351,21 @@ ___
 ### upserv_download_local_package
 
 ```php
-upserv_download_local_package( string $package_slug, string $package_path );
+upserv_download_local_package( string $package_slug, ?string $package_path = null, bool $exit_or_die = true );
 ```
 
 **Description**  
-Start a download of a package from the file system and exits. 
+Stream a package from the file system and optionally terminate the request.
 
 **Parameters**  
 `$package_slug`
 > (string) slug of the package  
 
 `$package_path`
-> (string) path of the package on the **local** file system - if `null`, will attempt to find it using `upserv_get_local_package_path( $package_slug )`; default `null`  
+> (string|null) package path on the **local** file system, or `null` to locate it with `upserv_get_local_package_path( $package_slug )`
+
+`$exit_or_die`
+> (bool) whether to terminate the request after handling the download; default `true`
 
 ___
 ### upserv_delete_package
@@ -1395,10 +1398,10 @@ Get information about a package on the file system
 > (string) slug of the package  
 
 `$json_encode`
-> (bool) whether to return a JSON object if `true`, or a PHP associative array otherwise; default to `true`  
+> (bool) whether to return a JSON string instead of a PHP associative array; default to `true`
 
 **Return value**
-> (array|string) the package information as a PHP associative array or a JSON object  
+> (array|string) the package information as a PHP associative array or a JSON string
 
 Values format in case of a plugin package:
 ```json
@@ -1506,10 +1509,10 @@ Get batch information of packages on the file system
 > (string) search string to be used in package's slug and package's name (case insensitive)  
 
 `$json_encode`
-> (bool) whether to return a JSON object (default) or a PHP associative array  
+> (bool) whether to return a JSON string (default) instead of a PHP associative array
 
 **Return value**
-> (array|string) the batch information as a PHP associative array or a JSON object; each entry is formatted like in [upserv_get_package_info](#upserv_get_package_info)
+> (array|string) the batch information as a PHP associative array or a JSON string; each entry is formatted like in [upserv_get_package_info](#upserv_get_package_info)
 
 Values format:
 ```json
@@ -1624,25 +1627,28 @@ By default, contains the metadata UpdatePulse needs to keep track of the package
 > (string) slug of the package
 
 `$json_encode`
-> (bool) whether to return a JSON object (default) or a PHP associative array
+> (bool) whether to return a JSON string instead of a PHP associative array; default to `false`
+
+**Return value**
+> (array|string) the package metadata
 
 ### upserv_set_package_metadata
 
 ```php
-upserv_set_package_metadata( string $package_slug, array $metadata );
+upserv_set_package_metadata( string $package_slug, ?array $metadata );
 ```
 
 **Description**
 Set metadata of a package.
 Setting metadata will overwrite the existing metadata.
-Setting metadata to an empty value will delete the metadata record.
+Setting metadata to an empty value, including `null`, will delete the metadata record.
 
 **Parameters**
 `$package_slug`
 > (string) slug of the package
 
 `$metadata`
-> (array) metadata to set
+> (array|null) metadata to set, or an empty value to delete the metadata record
 
 ___
 ## Actions
@@ -1729,7 +1735,7 @@ ___
 ### upserv_scheduled_check_remote_event
 
 ```php
-do_action( 'upserv_scheduled_check_remote_event', bool $result, string $package_slug, int $timestamp, string $frequency, string $hook, array $params );
+do_action( 'upserv_scheduled_check_remote_event', bool|int $result, string $package_slug, int $timestamp, string|false $frequency, string $hook, array $params );
 ```
 
 **Description**  
@@ -1738,7 +1744,7 @@ Fired during client update API request.
 
 **Parameters**  
 `$result`
-> (bool) `true` if the event was scheduled, `false` otherwise  
+> (bool|int) the Action Scheduler action ID or WordPress cron scheduling result
 
 `$package_slug`
 > (string) slug of the package for which the event was scheduled  
@@ -1747,7 +1753,7 @@ Fired during client update API request.
 > (int) timestamp for when to run the event the first time after it's been scheduled  
 
 `$frequency`
-> (string) frequency at which the event would be ran  
+> (string|false) recurring frequency, or `false` for a one-time webhook-triggered check
 
 `$hook`
 > (string) event hook to fire when the event is ran  
@@ -1759,12 +1765,11 @@ ___
 ### upserv_registered_check_remote_schedule
 
 ```php
-do_action( 'upserv_registered_check_remote_schedule', string $package_slug, string $scheduled_hook, string $action_hook );
+do_action( 'upserv_registered_check_remote_schedule', string $package_slug, string $scheduled_hook, callable $action_hook );
 ```
 
 **Description**  
-Fired after a remote check action has been registered for a package.  
-Fired during client update API request.  
+Fired during scheduler initialization after a remote check callback has been registered. This action is not fired during client update API requests because callback registration is explicitly skipped for those requests.
 
 **Parameters**  
 `$package_slug`
@@ -1774,7 +1779,7 @@ Fired during client update API request.
 > (string) the event hook the action has been registered to (see `upserv_scheduled_check_remote_event` action)  
 
 `$action_hook`
-> (string) the action that has been registered  
+> (callable) the callback that has been registered
 
 ___
 ### upserv_cleared_check_remote_schedule
@@ -1784,8 +1789,7 @@ do_action( 'upserv_cleared_check_remote_schedule', string $package_slug, string 
 ```
 
 **Description**  
-Fired after a remote check schedule event has been unscheduled for a package.  
-Fired during client update API request.  
+Fired after a remote check schedule event has been unscheduled for a package. Depending on the caller, this occurs while disabling or rescheduling VCS checks, deleting a package, or handling a webhook.
 
 **Parameters**  
 `$package_slug`
@@ -1798,7 +1802,7 @@ ___
 ### upserv_scheduled_cleanup_event
 
 ```php
-do_action( 'upserv_scheduled_cleanup_event', bool $result, string $type, int $timestamp, string $frequency, string $hook, array $params );
+do_action( 'upserv_scheduled_cleanup_event', bool|int $result, string $type, int $timestamp, string $frequency, string $hook, array $params );
 ```
 
 **Description**  
@@ -1806,7 +1810,7 @@ Fired after a cleanup event has been scheduled for a type of plugin data.
 
 **Parameters**  
 `$result`
-> (bool) `true` if the event was scheduled, `false` otherwise  
+> (bool|int) the Action Scheduler action ID or WordPress cron scheduling result
 
 `$type`
 > (string) plugin data type for which the event was scheduled (`cache`, `logs`,or `tmp`)  
@@ -1815,7 +1819,7 @@ Fired after a cleanup event has been scheduled for a type of plugin data.
 > (int) timestamp for when to run the event the first time after it's been scheduled  
 
 `$frequency`
-> (string) frequency at which the event would be ran  
+> (string) frequency at which the event will run
 
 `$hook`
 > (string) event hook to fire when the event is ran  
@@ -1831,11 +1835,11 @@ do_action( 'upserv_registered_cleanup_schedule', string $type, array $params );
 ```
 
 **Description**  
-Fired after a cleanup action has been registered for a type of plugin data.  
+Fired during scheduler initialization after a cleanup callback has been registered for a type of plugin data. Callback registration is skipped during client update API requests.
 
 **Parameters**  
 `$type`
-> (string) plugin data type for which or which an action has been registered (`cache`, `logs`,or `tmp`)  
+> (string) plugin data type for which a callback has been registered (`cache`, `logs`, or `tmp`)
 
 `$params`
 > (array) the parameters passed to the registered cleanup action  
@@ -1950,7 +1954,7 @@ ___
 ### upserv_downloaded_remote_package
 
 ```php
-do_action( 'upserv_downloaded_remote_package', mixed $package, string $type, string $package_slug );
+do_action( 'upserv_downloaded_remote_package', string|WP_Error $package, string $type, string $package_slug );
 ```
 
 **Description**  
@@ -1959,7 +1963,7 @@ Fired during client update API request.
 
 **Parameters**  
 `$package`
-> (mixed) full path to the package temporary file in case of success, WP_Error object otherwise  
+> (string|WP_Error) full path to the temporary package file, or a download error
 
 `$type`
 > (string) type of the downloaded package - `"Plugin"`, `"Theme"`, or `"Generic"`   
@@ -2039,12 +2043,12 @@ do_action( 'upserv_before_remote_package_zip', string $package_slug, string $fil
 ```
 
 **Description**  
-Fired before packing the files received from the Version Control System. Can be used for extra files manipulation.  
+Fired during VCS package repacking, before the extracted files are packed. Can be used for extra file manipulation.
 Fired during client update API request.  
 
 **Parameters**  
 `$package_slug`
-> (string) the slug of the package  
+> (string) the slug of the package
 
 `$files_path`
 > (string) the path of the directory where the package files are located  
@@ -2198,7 +2202,7 @@ do_action( 'upserv_remote_sources_options_updated', array $errors );
 ```
 
 **Description**  
-Fired after the options in "Remote Sources" have been updated.
+Fired after the "Remote Sources" options form has been processed.
 
 **Parameters**  
 `$errors`
@@ -2213,7 +2217,7 @@ do_action( 'upserv_package_options_updated', array $errors );
 ```
 
 **Description**  
-Fired after the options in "Packages Overview" have been updated.
+Fired after the package options form has been processed.
 
 **Parameters**  
 `$errors`
@@ -2269,15 +2273,18 @@ ___
 ### upserv_package_manager_deleted_package
 
 ```php
-do_action( 'upserv_package_manager_deleted_package', string $package_slug );
+do_action( 'upserv_package_manager_deleted_package', string $package_slug, bool $result );
 ```
 
 **Description**  
-Fired after a package was deleted as part of a bulk from the file system.
+Fired after a package deletion has been attempted as part of a bulk operation.
 
 **Parameters**  
 `$package_slug`
-> (string) the slug of the deleted package  
+> (string) the slug of the package
+
+`$result`
+> (bool) whether the package was successfully deleted
 
 ___
 ### upserv_package_manager_pre_delete_packages_bulk
@@ -2352,7 +2359,7 @@ do_action( 'upserv_after_packages_download', string $archive_name, string $archi
 ```
 
 **Description**  
-Fired after download for an archive containing one or multiple packages has been performed, regardless of whether the content has been streamed.
+Fired after package download handling completes, including when the archive could not be streamed.
 
 **Parameters**  
 `$archive_name`
@@ -2382,7 +2389,7 @@ ___
 ### upserv_find_package_no_cache
 
 ```php
-do_action( 'upserv_find_package_no_cache', string $package_slug, string $package_path, Wpup_FileCache $cache );
+do_action( 'upserv_find_package_no_cache', string $package_slug, string $package_path, Cache $cache );
 ```
 
 **Description**  
@@ -2397,13 +2404,13 @@ Fired during client update API request.
 > (string) the absolute path of the package on the **local** file system  
 
 `$cache`
-> (Wpup_FileCache) the cache object  
+> (Cache) the cache object
 
 ___
 ### upserv_update_server_action_download
 
 ```php
-do_action( 'upserv_update_server_action_download', Wpup_Request $request );
+do_action( 'upserv_update_server_action_download', Request $request );
 ```
 
 **Description**  
@@ -2412,7 +2419,7 @@ Fired during client update API request.
 
 **Parameters**  
 `$request`
-> (Wpup_Request) the request object  
+> (Request) the request object
 
 ___
 ### upserv_webhook_before_handling_request
@@ -2722,7 +2729,7 @@ Fired during client update API request.
 > (mixed) the credentials to access the VCS where the packages are located  
 
 `$vcs_self_hosted`
-> (bool) `true` if the VCS is self-hosted, `false` otherwiseark  
+> (bool) `true` if the VCS is self-hosted, `false` otherwise
 
 ___
 ### upserv_cloud_storage_virtual_dir
@@ -3027,24 +3034,24 @@ ___
 ### upserv_delete_packages_bulk_paths
 
 ```php
-apply_filters( 'upserv_delete_packages_bulk_paths', string $package_paths, array $package_slugs );
+apply_filters( 'upserv_delete_packages_bulk_paths', array $package_paths, array $package_slugs );
 ```
 
 **Description**  
-Filter the paths or the package archives to delete.
+Filter the paths of the package archives to delete.
 
 **Parameters**  
 `$package_paths`
-> (string) the paths or the package archives to delete from the file system  
+> (array) the paths of the package archives to delete from the file system
 
 `$package_slugs`
-> (array) the slugs or the package to delete from the file system  
+> (array) the slugs of the packages to delete from the file system
 
 ___
 ### upserv_package_manager_get_package_info
 
 ```php
-apply_filters( 'upserv_package_manager_get_package_info', array $package_info, string $package_slug );
+apply_filters( 'upserv_package_manager_get_package_info', array|false $package_info, string $package_slug );
 ```
 
 **Description**  
@@ -3054,7 +3061,7 @@ By default, this filter is used when the Object Storage method is enabled.
 
 **Parameters**  
 `$package_info`
-> (array) the information of the package  
+> (array|false) the package information, or `false` when it has not been found
 
 `$package_slug`
 > (string) the slug of the package  
@@ -3132,7 +3139,7 @@ ___
 ### upserv_check_remote_package_update_local_meta
 
 ```php
-apply_filters( 'upserv_check_remote_package_update_local_meta', array $package_info, Wpup_Package $package, string $package_slug );
+apply_filters( 'upserv_check_remote_package_update_local_meta', array|false $package_info, Package $package, string $package_slug );
 ```
 
 **Description**  
@@ -3141,10 +3148,10 @@ Fired during client update API request.
 
 **Parameters**  
 `$package_info`
-> (array) the package information  
+> (array|false) the package information, or `false` when unavailable
 
 `$package`
-> (Wpup_Package) the package object retrieved from the file system, either from cache or from the package archive  
+> (Package) the package object retrieved from the file system, either from cache or from the package archive
 
 `$package_slug`
 > (string) the slug of the package  
@@ -3153,7 +3160,7 @@ ___
 ### upserv_check_remote_package_update_no_local_meta_needs_update
 
 ```php
-apply_filters( 'upserv_check_remote_package_update_no_local_meta_needs_update', bool $needs_update, Wpup_Package $package, string $package_slug );
+apply_filters( 'upserv_check_remote_package_update_no_local_meta_needs_update', bool $needs_update, Package $package, string $package_slug );
 ```
 
 **Description**  
@@ -3165,7 +3172,7 @@ Fired during client update API request.
 > (bool) whether the package in the file system needs to be updated  
 
 `$package`
-> (Wpup_Package) the package object retrieved from the file system, either from cache or from the package archive  
+> (Package) the package object retrieved from the file system, either from cache or from the package archive
 
 `$package_slug`
 > (string) the slug of the package  
@@ -3194,7 +3201,7 @@ ___
 ### upserv_update_server_action_download_handled
 
 ```php
-apply_filters( 'upserv_update_server_action_download_handled', bool $download_handled, Wpup_Request $request );
+apply_filters( 'upserv_update_server_action_download_handled', bool $download_handled, Request $request );
 ```
 
 **Description**  
@@ -3206,7 +3213,7 @@ Fired during client update API request.
 > (bool) whether the package download has been handled  
 
 `$request`
-> (Wpup_Request) the request object  
+> (Request) the request object
 
 ___
 ### upserv_save_remote_to_local
@@ -3593,7 +3600,7 @@ ___
 ### upserv_set_package_metadata_data
 
 ```php
-apply_filters( 'upserv_set_package_metadata_data', array $data, string $package_slug );
+apply_filters( 'upserv_set_package_metadata_data', array|null $data, string $package_slug );
 ```
 
 **Description**
@@ -3601,7 +3608,7 @@ Filter the data used to set the package metadata.
 
 **Parameters**
 `$data`
-> (array) the data used to set the package metadata
+> (array|null) the metadata to set, or an empty value to delete the metadata record
 
 `$package_slug`
 > (string) the slug of the package

@@ -63,7 +63,6 @@ class Headers implements ArrayAccess, IteratorAggregate, Countable {
 	/**
 	 * Extract HTTP headers from an array of data ( usually $_SERVER ).
 	 *
-	 * @param array $environment Server environment variables.
 	 * @return array Extracted HTTP headers.
 	 * @since 1.0.0
 	 */
@@ -75,7 +74,7 @@ class Headers implements ArrayAccess, IteratorAggregate, Countable {
 			$key = strtoupper( $key );
 
 			if ( self::is_header_name( $key ) ) {
-				//Remove the "HTTP_" prefix that PHP adds to headers stored in $_SERVER.
+				// Remove the "HTTP_" prefix that PHP adds to headers stored in $_SERVER.
 				$key = preg_replace( '/^HTTP[_-]/', '', $key );
 				// Assign a sanitized value to the parsed results.
 				$results[ $key ] = null !== $value ? wp_kses_post( $value ) : $value;
@@ -152,8 +151,8 @@ class Headers implements ArrayAccess, IteratorAggregate, Countable {
 	 * Get the value of a HTTP header.
 	 *
 	 * @param string $name Header name.
-	 * @param mixed $_default The default value to return if the header doesn't exist.
-	 * @return string|null Header value or default if not found.
+	 * @param mixed  $_default The default value to return if the header doesn't exist.
+	 * @return mixed Header value or the supplied default.
 	 * @since 1.0.0
 	 */
 	public function get( $name, $_default = null ) {

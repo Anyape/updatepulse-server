@@ -24,7 +24,7 @@ class Package_API {
 	/**
 	 * Is doing API request
 	 *
-	 * @var bool|null
+	 * @var int|null
 	 * @since 1.0.0
 	 */
 	protected static $doing_api_request = null;
@@ -574,7 +574,7 @@ class Package_API {
 	 *
 	 * Actions to perform when a remote package has been saved locally.
 	 *
-	 * @param bool $local_ready Whether the local package is ready.
+	 * @param bool   $local_ready Whether the local package is ready.
 	 * @param string $package_type The type of the package.
 	 * @param string $package_slug The slug of the package.
 	 * @since 1.0.0
@@ -619,7 +619,7 @@ class Package_API {
 	 *
 	 * Actions to perform after a package is deleted.
 	 *
-	 * @param bool $result The result of the deletion.
+	 * @param bool   $result The result of the deletion.
 	 * @param string $package_slug The slug of the package.
 	 * @param string $package_type The type of the package.
 	 * @since 1.0.0
@@ -708,7 +708,7 @@ class Package_API {
 	 *
 	 * @param mixed $nonce The nonce to validate.
 	 * @param mixed $true_nonce The true nonce value.
-	 * @param int $expiry The nonce expiry time.
+	 * @param int   $expiry The nonce expiry time.
 	 * @param array $data Additional data associated with the nonce.
 	 * @return mixed Validated nonce or null if invalid.
 	 * @since 1.0.0
@@ -748,7 +748,7 @@ class Package_API {
 	 *
 	 * @param mixed $nonce The nonce to validate.
 	 * @param mixed $true_nonce The true nonce value.
-	 * @param int $expiry The nonce expiry time.
+	 * @param int   $expiry The nonce expiry time.
 	 * @param array $data Additional data associated with the nonce.
 	 * @return mixed Validated nonce or null if invalid.
 	 * @since 1.0.0
@@ -847,7 +847,7 @@ class Package_API {
 	 *
 	 * Determine whether to include package information in responses.
 	 *
-	 * @param bool $_include Current inclusion status.
+	 * @param bool  $_include Current inclusion status.
 	 * @param array $info Package information.
 	 * @return bool Whether to include the package information.
 	 * @since 1.0.0
@@ -863,7 +863,7 @@ class Package_API {
 	 *
 	 * Determine whether the current request is a Package API request.
 	 *
-	 * @return bool Whether the current request is a Package API request.
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 * @since 1.0.0
 	 */
 	public static function is_doing_api_request() {
@@ -955,7 +955,7 @@ class Package_API {
 	 *
 	 * Handle validation and processing of an uploaded package file.
 	 *
-	 * @param array $file The file information array.
+	 * @param array  $file The file information array.
 	 * @param string $package_id The package ID/slug.
 	 * @param string $type The package type.
 	 * @return bool|WP_Error True on success, WP_Error on failure.

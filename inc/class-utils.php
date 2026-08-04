@@ -27,7 +27,7 @@ class Utils {
 	 *
 	 * Adds class/method context information to the log message.
 	 *
-	 * @param string $message Message to log
+	 * @param mixed  $message Value to log.
 	 * @param string $prefix Optional prefix for the log message
 	 * @since 1.0.0
 	 */
@@ -137,7 +137,7 @@ class Utils {
 	 *
 	 * Calculates the time elapsed since the request started in seconds.
 	 *
-	 * @return string|null Time elapsed in seconds with 3 decimal precision, or null if request time not available
+	 * @return string|null Time elapsed with an `s` suffix and three decimal places, or null when unavailable.
 	 * @since 1.0.0
 	 */
 	public static function get_time_elapsed() {

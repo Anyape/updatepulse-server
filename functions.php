@@ -145,12 +145,12 @@ if ( ! function_exists( 'upserv_update_options' ) ) {
 	/**
 	 * Updates all plugin options
 	 *
-	 * Replaces the entire options array with the provided options.
+	 * Merges the provided values into the stored options array.
 	 *
 	 * @since 1.0
 	 *
 	 * @param array $options The new options to save
-	 * @return bool True on success, false on failure
+	 * @return bool Whether the stored option value changed.
 	 */
 	function upserv_update_options( $options ) {
 		return UPServ::get_instance()->update_options( $options );
@@ -241,7 +241,7 @@ if ( ! function_exists( 'upserv_is_doing_license_api_request' ) ) {
 	 *
 	 * @since 1.0
 	 *
-	 * @return bool True if the current request is a License API request, false otherwise
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 */
 	function upserv_is_doing_license_api_request() {
 		return License_API::is_doing_api_request();
@@ -254,7 +254,7 @@ if ( ! function_exists( 'upserv_is_doing_update_api_request' ) ) {
 	 *
 	 * @since 1.0
 	 *
-	 * @return bool `true` if the current request is a client plugin, theme, or generic package interacting with the plugin's API, `false` otherwise
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 */
 	function upserv_is_doing_update_api_request() {
 		return Update_API::is_doing_api_request();
@@ -267,7 +267,7 @@ if ( ! function_exists( 'upserv_is_doing_webhook_api_request' ) ) {
 	 *
 	 * @since 1.0
 	 *
-	 * @return bool `true` if the current request is made by a Webhook, `false` otherwise
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 */
 	function upserv_is_doing_webhook_api_request() {
 		return Webhook_API::is_doing_api_request();
@@ -280,7 +280,7 @@ if ( ! function_exists( 'upserv_is_doing_package_api_request' ) ) {
 	 *
 	 * @since 1.0
 	 *
-	 * @return bool `true` if the current request is made by a remote client interacting with the plugin's package API, `false` otherwise
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 */
 	function upserv_is_doing_package_api_request() {
 		return Package_API::is_doing_api_request();
@@ -289,11 +289,11 @@ if ( ! function_exists( 'upserv_is_doing_package_api_request' ) ) {
 
 if ( ! function_exists( 'upserv_is_doing_api_request' ) ) {
 	/**
-	 * Determine whether the current request is made by a remote client interacting with any of the APIs.
+	 * Determine whether the current request matches any recognized plugin API endpoint.
 	 *
 	 * @since 1.0
 	 *
-	 * @return bool `true` if the current request is made by a remote client interacting with any of the APIs, `false` otherwise
+	 * @return bool Whether the current request matches a recognized plugin API endpoint.
 	 */
 	function upserv_is_doing_api_request() {
 		$mu_doing_api   = wp_cache_get( 'upserv_mu_doing_api', 'updatepulse-server' );
@@ -329,6 +329,13 @@ if ( ! function_exists( 'upserv_get_data_dir' ) ) {
 }
 
 if ( ! function_exists( 'upserv_get_root_data_dir' ) ) {
+	/**
+	 * Get the root directory used for plugin data.
+	 *
+	 * @since 1.0
+	 *
+	 * @return string The plugin data directory path.
+	 */
 	function upserv_get_root_data_dir() {
 		return Data_Manager::get_data_dir();
 	}
@@ -443,8 +450,8 @@ if ( ! function_exists( 'upserv_get_package_metadata' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $package_slug The slug of the package
-	 * @param bool   $json_encode  Whether to return a JSON object (default) or a PHP associative array
-	 * @return mixed The package metadata
+	 * @param bool   $json_encode  Whether to return a JSON string instead of a PHP associative array.
+	 * @return array|string The package metadata.
 	 */
 	function upserv_get_package_metadata( $package_slug, $json_encode = false ) {
 		return Package_Manager::get_instance()->get_package_metadata(
@@ -461,7 +468,7 @@ if ( ! function_exists( 'upserv_set_package_metadata' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $package_slug The slug of the package
-	 * @param array  $metadata     The metadata to set
+	 * @param array|null $metadata The metadata to set, or an empty value to delete it.
 	 * @return bool `true` if the metadata was successfully set, `false` otherwise
 	 */
 	function upserv_set_package_metadata( $package_slug, $metadata ) {
@@ -572,9 +579,9 @@ if ( ! function_exists( 'upserv_download_remote_plugin' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $slug     The slug of the plugin package to download
-	 * @param string $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
+	 * @param string|false $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
 	 * @param string $branch  The branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
-	 * @return bool `true` if the plugin package was successfully downloaded, `false` otherwise
+	 * @return bool|WP_Error Whether the package was downloaded, or an error for invalid VCS information.
 	 */
 	function upserv_download_remote_plugin( $slug, $vcs_url = false, $branch = 'main' ) {
 		return upserv_download_remote_package( $slug, 'plugin', $vcs_url, $branch );
@@ -589,9 +596,9 @@ if ( ! function_exists( 'upserv_download_remote_theme' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $slug     The slug of the theme package to download
-	 * @param string $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
+	 * @param string|false $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
 	 * @param string $branch  The branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
-	 * @return bool `true` if the theme package was successfully downloaded, `false` otherwise
+	 * @return bool|WP_Error Whether the package was downloaded, or an error for invalid VCS information.
 	 */
 	function upserv_download_remote_theme( $slug, $vcs_url = false, $branch = 'main' ) {
 		return upserv_download_remote_package( $slug, 'theme', $vcs_url, $branch );
@@ -607,7 +614,7 @@ if ( ! function_exists( 'upserv_download_remote_package' ) ) {
 	 *
 	 * @param string $slug     The slug of the package to download
 	 * @param string $type     The type of the package; default to `'generic'`
-	 * @param string $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
+	 * @param string|false $vcs_url The URL of a VCS configured in UpdatePulse Server; default to `false`
 	 * @param string $branch  The branch as provided in a VCS configured in UpdatePulse Server; default to `'main'`
 	 * @return bool|WP_Error `WP_Error` if provided VCS information is invalid, `true` if the package was successfully downloaded, `false` otherwise
 	 */
@@ -679,8 +686,8 @@ if ( ! function_exists( 'upserv_get_package_info' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $package_slug The slug of the package
-	 * @param bool   $json_encode  Whether to return a JSON object (default) or a PHP associative array
-	 * @return mixed The package information as a PHP associative array or a JSON object
+	 * @param bool   $json_encode  Whether to return a JSON string (default) instead of a PHP associative array.
+	 * @return array|string The package information.
 	 */
 	function upserv_get_package_info( $package_slug, $json_encode = true ) {
 		$result          = $json_encode ? '{}' : array();
@@ -718,8 +725,8 @@ if ( ! function_exists( 'upserv_get_batch_package_info' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $search      Search string to be used in package's slug and package's name (case insensitive)
-	 * @param bool   $json_encode Whether to return a JSON object (default) or a PHP associative array
-	 * @return mixed The batch information as a PHP associative array or a JSON object; each entry is formatted like in `upserv_get_package_info`
+	 * @param bool   $json_encode Whether to return a JSON string (default) instead of a PHP associative array.
+	 * @return array|string The batch information; each entry is formatted like in `upserv_get_package_info()`.
 	 */
 	function upserv_get_batch_package_info( $search, $json_encode = true ) {
 		$result          = $json_encode ? '{}' : array();
@@ -736,12 +743,12 @@ if ( ! function_exists( 'upserv_get_batch_package_info' ) ) {
 
 if ( ! function_exists( 'upserv_download_local_package' ) ) {
 	/**
-	 * Start a download of a package from the file system and exits.
+	 * Stream a package from the file system and optionally terminate the request.
 	 *
 	 * @since 1.0
 	 *
 	 * @param string $package_slug  The slug of the package
-	 * @param string $package_path  The path of the package on the local file system - if `null`, will attempt to find it using `upserv_get_local_package_path( $package_slug )`; default `null`
+	 * @param string|null $package_path The package path, or null to locate it from the slug.
 	 * @param bool   $exit_or_die Whether to exit or die after the download; default `true`
 	 * @return void
 	 */
@@ -1032,7 +1039,7 @@ if ( ! function_exists( 'upserv_init_nonce_auth' ) ) {
 	 *
 	 * @since 1.0
 	 *
-	 * @param string $private_auth_key The private authentication key
+	 * @param array $private_auth_key The private authentication key data.
 	 */
 	function upserv_init_nonce_auth( $private_auth_key ) {
 		Nonce::init_auth( $private_auth_key );
@@ -1048,11 +1055,11 @@ if ( ! function_exists( 'upserv_create_nonce' ) ) {
 	 * @since 1.0
 	 *
 	 * @param bool   $true_nonce    Whether the nonce is one-time-use; default `true`
-	 * @param int    $expiry_length The number of seconds after which the nonce expires; default `UPServ_Nonce::DEFAULT_EXPIRY_LENGTH` - 30 seconds
+	 * @param int    $expiry_length The number of seconds after which the nonce expires; default `Nonce::DEFAULT_EXPIRY_LENGTH` - 30 seconds
 	 * @param array  $data          Custom data to save along with the nonce; set an element with key `permanent` to a truthy value to create a nonce that never expires; default `array()`
-	 * @param int    $return_type   Whether to return the nonce, or an array of information; default `UPServ_Nonce::NONCE_ONLY`; other accepted value is `UPServ_Nonce::NONCE_INFO_ARRAY`
+	 * @param int    $return_type   Whether to return the nonce, or an array of information; default `Nonce::NONCE_ONLY`; other accepted value is `Nonce::NONCE_INFO_ARRAY`
 	 * @param bool   $store         Whether to store the nonce, or let a third party mechanism take care of it; default `true`
-	 * @return bool|string|array `false` in case of failure; the cryptographic token string if `$return_type` is set to `UPServ_Nonce::NONCE_ONLY`; an array of information if `$return_type` is set to `UPServ_Nonce::NONCE_INFO_ARRAY`
+	 * @return bool|string|array `false` on failure, the token for `Nonce::NONCE_ONLY`, or nonce information for `Nonce::NONCE_INFO_ARRAY`.
 	 */
 	function upserv_create_nonce(
 		$true_nonce = true,
@@ -1072,7 +1079,7 @@ if ( ! function_exists( 'upserv_get_nonce_expiry' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $nonce The nonce
-	 * @return int The expiry timestamp
+	 * @return int The expiry timestamp, or zero when the nonce is missing or permanent.
 	 */
 	function upserv_get_nonce_expiry( $nonce ) {
 		return Nonce::get_nonce_expiry( $nonce );
@@ -1086,7 +1093,7 @@ if ( ! function_exists( 'upserv_get_nonce_data' ) ) {
 	 * @since 1.0
 	 *
 	 * @param string $nonce The nonce
-	 * @return array The data stored along the nonce
+	 * @return mixed The data stored with the nonce, or an empty array when unavailable.
 	 */
 	function upserv_get_nonce_data( $nonce ) {
 		return Nonce::get_nonce_data( $nonce );
@@ -1136,16 +1143,16 @@ if ( ! function_exists( 'upserv_clear_nonces' ) ) {
 
 if ( ! function_exists( 'upserv_build_nonce_api_signature' ) ) {
 	/**
-	* Build credentials and signature for UpdatePulse Server Nonce API.
-	*
-	* @since 1.0
-	*
-	* @param string $api_key_id The ID of the Private API Key
-	* @param string $api_key The Private API Key - will not be sent over the Internet
-	* @param int    $timestamp The timestamp used to limit the validity of the signature (validity is MINUTE_IN_SECONDS)
-	* @param int    $payload The payload to acquire a reusable token or a true nonce
-	* @return array An array with keys `credentials` and `signature`
-	*/
+	 * Build credentials and a signature for the UpdatePulse Server Nonce API.
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $api_key_id The ID of the private API key.
+	 * @param string $api_key    The private API key, which is not included in the result.
+	 * @param int    $timestamp  The timestamp included in the credentials and signature.
+	 * @param array  $payload    The payload used to request a reusable token or true nonce.
+	 * @return array An array with `credentials` and `signature` keys.
+	 */
 	function upserv_build_nonce_api_signature( $api_key_id, $api_key, $timestamp, $payload ) {
 		unset( $payload['api_signature'] );
 		unset( $payload['api_credentials'] );

@@ -45,9 +45,9 @@ class Package {
 	 * of instantiating this class directly. Still, you can do it if you want to, for example,
 	 * load package metadata from the database instead of extracting it from a Zip file.
 	 *
-	 * @param string $slug The package slug.
-	 * @param string $filename The path to the package file.
-	 * @param array $metadata The package metadata.
+	 * @param string      $slug The package slug.
+	 * @param string|null $filename The path to the package file.
+	 * @param array       $metadata The package metadata.
 	 * @since 1.0.0
 	 */
 	public function __construct( $slug, $filename = null, $metadata = array() ) {
@@ -59,7 +59,7 @@ class Package {
 	/**
 	 * Get the full file path of this package.
 	 *
-	 * @return string The full file path of the package.
+	 * @return string|null The full file path of the package.
 	 * @since 1.0.0
 	 */
 	public function get_filename() {
@@ -69,7 +69,6 @@ class Package {
 	/**
 	 * Get package metadata.
 	 *
-	 * @see self::extractMetadata()
 	 * @return array The package metadata merged with the slug.
 	 * @since 1.0.0
 	 */
@@ -80,9 +79,9 @@ class Package {
 	/**
 	 * Load package information.
 	 *
-	 * @param string $filename Path to a Zip archive that contains a package.
-	 * @param string $slug Optional package slug. Will be detected automatically.
-	 * @param Cache|null $cache Optional cache object for metadata.
+	 * @param string      $filename Path to a Zip archive that contains a package.
+	 * @param string|null $slug Optional package slug. Will be detected automatically.
+	 * @param Cache|null  $cache Optional cache object for metadata.
 	 * @return Package A new Package instance with the extracted metadata.
 	 * @since 1.0.0
 	 */
@@ -100,7 +99,7 @@ class Package {
 	/**
 	 * Get the size of the package (in bytes).
 	 *
-	 * @return int The size of the package file in bytes.
+	 * @return int|false The size of the package file in bytes, or false on failure.
 	 * @since 1.0.0
 	 */
 	public function get_file_size() {
@@ -110,7 +109,7 @@ class Package {
 	/**
 	 * Get the Unix timestamp of the last time this package was modified.
 	 *
-	 * @return int The Unix timestamp when the package was last modified.
+	 * @return int|false The Unix timestamp when the package was last modified, or false on failure.
 	 * @since 1.0.0
 	 */
 	public function get_last_modified() {

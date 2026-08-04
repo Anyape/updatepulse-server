@@ -65,11 +65,11 @@ class CLI extends WP_CLI_Command {
 	 *******************************************************************/
 
 	/**
-	 * Cleans up the cache folder in wp-content/updatepulse-server.
+	 * Cleans up the cache folder in wp-content/uploads/updatepulse-server.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse cleanup_cache
+	 *     wp updatepulse-server cleanup_cache
 	 *
 	 * @since 1.0.0
 	 */
@@ -78,11 +78,11 @@ class CLI extends WP_CLI_Command {
 	}
 
 	/**
-	 * Cleans up the logs folder in wp-content/updatepulse-server.
+	 * Cleans up the logs folder in wp-content/uploads/updatepulse-server.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse cleanup_logs
+	 *     wp updatepulse-server cleanup_logs
 	 *
 	 * @since 1.0.0
 	 */
@@ -91,11 +91,11 @@ class CLI extends WP_CLI_Command {
 	}
 
 	/**
-	 * Cleans up the tmp folder in wp-content/updatepulse-server.
+	 * Cleans up the tmp folder in wp-content/uploads/updatepulse-server.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse cleanup_tmp
+	 *     wp updatepulse-server cleanup_tmp
 	 *
 	 * @since 1.0.0
 	 */
@@ -104,11 +104,11 @@ class CLI extends WP_CLI_Command {
 	}
 
 	/**
-	 * Cleans up the cache, logs and tmp folders in wp-content/updatepulse-server.
+	 * Cleans up the cache, logs, and tmp folders in wp-content/uploads/updatepulse-server.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse cleanup-all
+	 *     wp updatepulse-server cleanup_all
 	 *
 	 * @since 1.0.0
 	 */
@@ -131,7 +131,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse check_remote_package_update my-package plugin
+	 *     wp updatepulse-server check_remote_package_update my-package plugin
 	 *
 	 * @since 1.0.0
 	 */
@@ -172,11 +172,10 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse download_remote_package my-package plugin --vcs_url='https://vcs-url.tld/identifier/' --branch='main'
+	 *     wp updatepulse-server download_remote_package my-package plugin --vcs_url='https://vcs-url.tld/identifier/' --branch='main'
 	 *
 	 * @since 1.0.0
 	 */
-
 	public function download_remote_package( $args, $assoc_args ) {
 		$slug       = $args[0];
 		$type       = $args[1];
@@ -215,7 +214,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse delete_package my-package
+	 *     wp updatepulse-server delete_package my-package
 	 *
 	 * @since 1.0.0
 	 */
@@ -238,7 +237,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse get_package_info my-package
+	 *     wp updatepulse-server get_package_info my-package
 	 *
 	 * @since 1.0.0
 	 */
@@ -272,7 +271,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse create_nonce --true_nonce=true --expiry_length=30 --data='{}' --return=nonce_only --store=true
+	 *     wp updatepulse-server create_nonce --true_nonce=true --expiry_length=30 --data='{}' --return_type=nonce_only --store=true
 	 *
 	 * @since 1.0.0
 	 */
@@ -343,7 +342,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse build_nonce_api_signature --api_key_id='UPDATEPULSE_L_api_key_name' --timestamp=1704067200 --api_key=da9d20647163a1f3c04844387f91e2c3 --payload='{"key": "value"}'
+	 *     wp updatepulse-server build_nonce_api_signature --api_key_id='UPDATEPULSE_L_api_key_name' --timestamp=1704067200 --api_key=da9d20647163a1f3c04844387f91e2c3 --payload='{"key": "value"}'
 	 *
 	 * @since 1.0.0
 	 */
@@ -380,7 +379,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse clear_nonces
+	 *     wp updatepulse-server clear_nonces
 	 *
 	 * @since 1.0.0
 	 */
@@ -402,7 +401,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse get_nonce_expiry <nonce>
+	 *     wp updatepulse-server get_nonce_expiry <nonce>
 	 *
 	 * @since 1.0.0
 	 */
@@ -425,7 +424,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse get_nonce_data <nonce>
+	 *     wp updatepulse-server get_nonce_data <nonce>
 	 *
 	 * @since 1.0.0
 	 */
@@ -448,7 +447,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse delete_nonce <nonce>
+	 *     wp updatepulse-server delete_nonce <nonce>
 	 *
 	 * @since 1.0.0
 	 */
@@ -471,7 +470,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse browse_licenses <license_query>
+	 *     wp updatepulse-server browse_licenses <license_query>
 	 *
 	 * @since 1.0.0
 	 */
@@ -493,7 +492,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse read_license <license_key_or_id>
+	 *     wp updatepulse-server read_license <license_key_or_id>
 	 *
 	 * @since 1.0.0
 	 */
@@ -523,7 +522,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse add_license <license_data>
+	 *     wp updatepulse-server add_license <license_data>
 	 *
 	 * @since 1.0.0
 	 */
@@ -549,7 +548,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse edit_license <license_data>
+	 *     wp updatepulse-server edit_license <license_data>
 	 *
 	 * @since 1.0.0
 	 */
@@ -575,7 +574,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse delete_license <license_key_or_id>
+	 *     wp updatepulse-server delete_license <license_key_or_id>
 	 *
 	 * @since 1.0.0
 	 */
@@ -604,7 +603,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse check_license <license_key_or_id>
+	 *     wp updatepulse-server check_license <license_key_or_id>
 	 *
 	 * @since 1.0.0
 	 */
@@ -643,7 +642,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse activate_license <license_key> <package-slug> <domain>
+	 *     wp updatepulse-server activate_license <license_key> <package-slug> <domain>
 	 *
 	 * @since 1.0.0
 	 */
@@ -679,7 +678,7 @@ class CLI extends WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp updatepulse deactivate_license <license_key> <package-slug> <domain>
+	 *     wp updatepulse-server deactivate_license <license_key> <package-slug> <domain>
 	 *
 	 * @since 1.0.0
 	 */

@@ -1,4 +1,15 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Admin navigation tabs template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var array  $links  Tab links keyed by tab identifier.
+ * @var string $state  Active tab identifier.
+ * @var array  $states Tab active states keyed by tab identifier.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div id="upserv-header">

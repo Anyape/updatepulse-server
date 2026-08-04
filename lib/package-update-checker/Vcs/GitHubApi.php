@@ -20,11 +20,15 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		use ReleaseFilteringFeature;
 
 		/**
-		 * @var string GitHub authentication token. Optional.
+		 * GitHub authentication token.
+		 *
+		 * @var string|null GitHub authentication token. Optional.
 		 */
 		protected $access_token;
 
 		/**
+		 * Whether the download filter has been added.
+		 *
 		 * @var bool Indicates if the download filter has been added.
 		 */
 		private $download_filter_added = false;
@@ -32,7 +36,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		/**
 		 * GitHubApi constructor.
 		 *
-		 * @param string $repository_url The URL of the GitHub repository.
+		 * @param string      $repository_url The URL of the GitHub repository.
 		 * @param string|null $access_token Optional GitHub access token.
 		 * @throws InvalidArgumentException If the repository URL is invalid.
 		 */
@@ -52,11 +56,13 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Check if the VCS is accessible.
+		 * Verify that the credentials can access the configured user or organization.
 		 *
-		 * @param string $url The URL to check.
+		 * @param string      $url The URL to check.
 		 * @param string|null $access_token Optional GitHub access token.
-		 * @return bool|WP_Error True if accessible, false or WP_Error otherwise.
+		 * @return bool|string True when the credentials are valid for the account, false when
+		 *                     authentication fails, or "failed_org_check" when organization
+		 *                     membership cannot be confirmed.
 		 */
 		public static function test( $url, $access_token = null ) {
 			$instance = new self( $url . 'bogus/', $access_token );
@@ -192,8 +198,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 							 */
 							$reference->download_url = $matching_assets[0]->url;
 						} else {
-							// It seems that browser_download_url only works for public repositories.
-							// Using an access_token doesn't help. Maybe OAuth would work?
+							// The browser download URL is used when the API asset URL does not need authentication.
 							$reference->download_url = $matching_assets[0]->browser_download_url;
 						}
 
@@ -292,7 +297,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Retrieve the timestamp of the latest commit that modified the specified branch or tag.
+		 * Retrieve the timestamp of the latest commit reachable from the specified branch or tag.
 		 *
 		 * @param string $ref Reference name (e.g., branch or tag).
 		 * @return string|null The timestamp of the latest commit or null if not found.
@@ -311,8 +316,8 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		 * Perform a GitHub API request.
 		 *
 		 * @param string $url The API endpoint URL.
-		 * @param array $query_params Optional query parameters.
-		 * @param bool $override_url Whether to override the base URL.
+		 * @param array  $query_params Optional query parameters.
+		 * @param bool   $override_url Whether to override the base URL.
 		 * @return mixed|WP_Error The API response or WP_Error on failure.
 		 */
 		protected function api( $url, $query_params = array(), $override_url = false ) {
@@ -369,7 +374,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		 * Construct a fully qualified URL for an API request.
 		 *
 		 * @param string $url The API endpoint URL.
-		 * @param array $query_params Optional query parameters.
+		 * @param array  $query_params Optional query parameters.
 		 * @return string The fully qualified URL.
 		 */
 		protected function build_api_url( $url, $query_params ) {
@@ -427,21 +432,21 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Retrieve a specific tag.
+		 * Reject direct tag lookup because this checker does not implement it.
 		 *
 		 * @param string $tag_name The name of the tag.
-		 * @return void
-		 * @throws LogicException If the method is not implemented.
+		 * @return void This method always throws.
+		 * @throws LogicException Always, because direct tag lookup is not implemented.
 		 */
 		public function get_tag( $tag_name ) {
-			// The current GitHub update checker doesn't use get_tag, so I didn't bother to implement it.
+			// Direct tag lookup is not used by this update checker.
 			throw new LogicException( 'The ' . __METHOD__ . ' method is not implemented and should not be used.' );
 		}
 
 		/**
-		 * Set the authentication credentials.
+		 * Set the GitHub authentication token.
 		 *
-		 * @param string|array $credentials The authentication credentials.
+		 * @param string|null $credentials The authentication token, or null to disable authentication.
 		 */
 		public function set_authentication( $credentials ) {
 			parent::set_authentication( $credentials );
@@ -450,7 +455,10 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Retrieve the update detection strategies based on the configuration branch.
+		 * Build the ordered update detection strategies for the configured branch.
+		 *
+		 * Release and tag detection are used for the main or master branch unless branch-only
+		 * detection is forced. Branch detection is always retained as the fallback strategy.
 		 *
 		 * @param string $config_branch The configuration branch.
 		 * @return array The update detection strategies.
@@ -505,11 +513,13 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Add an HTTP request filter.
+		 * Install authenticated download filters when invoked by an upgrader integration.
 		 *
-		 * @param bool $result The result of the filter.
-		 * @return bool The result of the filter.
-		 * @internal
+		 * Library consumers may attach this callback to `upgrader_pre_download`. It intentionally
+		 * remains unwired here because this API class does not own the update-checker lifecycle.
+		 *
+		 * @param mixed $result The unmodified upstream filter value.
+		 * @return mixed The unmodified upstream filter value.
 		 */
 		public function add_http_request_filter( $result ) {
 
@@ -525,7 +535,7 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		}
 
 		/**
-		 * Set the HTTP headers required to download updates from private repositories.
+		 * Add release-asset and repository authentication headers to matching download requests.
 		 *
 		 * Refer to GitHub documentation:
 		 *
@@ -533,8 +543,8 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		 * @link https://developer.github.com/v3/auth/#basic-authentication
 		 *
 		 * @internal
-		 * @param array $request_args
-		 * @param string $url
+		 * @param array  $request_args HTTP request arguments.
+		 * @param string $url Request URL.
 		 * @return array
 		 */
 		public function set_update_download_headers( $request_args, $url = '' ) {
@@ -559,8 +569,8 @@ if ( ! class_exists( GitHubApi::class, false ) ) :
 		 * the authorization header to other hosts. This can cause issues with AWS downloads
 		 * and may expose authorization information.
 		 *
-		 * @param string $location
-		 * @param array $headers
+		 * @param string $location Redirect destination.
+		 * @param array  $headers Request headers.
 		 * @internal
 		 */
 		public function remove_auth_header_from_redirects( &$location, &$headers ) {

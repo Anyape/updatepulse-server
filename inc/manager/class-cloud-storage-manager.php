@@ -377,9 +377,9 @@ class Cloud_Storage_Manager {
 	 * Validate package option updates
 	 *
 	 * @param boolean $condition Current validation condition
-	 * @param string $option_name Option being updated
-	 * @param array $option_info Option information
-	 * @param array $options All options being processed
+	 * @param string  $option_name Option being updated
+	 * @param array   $option_info Option information
+	 * @param array   $options All options being processed
 	 * @return boolean Whether option is valid
 	 * @since 1.0.0
 	 */
@@ -478,8 +478,8 @@ class Cloud_Storage_Manager {
 	 * Check if package exists in cloud storage
 	 *
 	 * @param boolean $package_exists Current existence state
-	 * @param array $payload Request payload
-	 * @param string $slug Package slug
+	 * @param array   $payload Request payload
+	 * @param string  $slug Package slug
 	 * @return boolean|null Whether package exists in cloud storage
 	 * @since 1.0.0
 	 */
@@ -523,8 +523,8 @@ class Cloud_Storage_Manager {
 	 * Process package removal from cloud storage
 	 *
 	 * @param boolean $result Current removal result
-	 * @param string $type Package type
-	 * @param string $slug Package slug
+	 * @param string  $type Package type
+	 * @param string  $slug Package slug
 	 * @return boolean Whether removal was successful
 	 * @since 1.0.0
 	 */
@@ -575,7 +575,7 @@ class Cloud_Storage_Manager {
 	/**
 	 * Modify admin template arguments
 	 *
-	 * @param array $args Current template arguments
+	 * @param array  $args Current template arguments
 	 * @param string $template_name Template being rendered
 	 * @return array Modified template arguments
 	 * @since 1.0.0
@@ -737,8 +737,8 @@ class Cloud_Storage_Manager {
 	 * Update local package metadata from cloud storage
 	 *
 	 * @param array|false $local_meta Current local metadata
-	 * @param object $local_package Local package instance
-	 * @param string $slug Package slug
+	 * @param Package     $local_package Local package instance
+	 * @param string      $slug Package slug
 	 * @return array|false Updated metadata or false
 	 * @since 1.0.0
 	 */
@@ -786,8 +786,8 @@ class Cloud_Storage_Manager {
 	 * Handle saving remote package to cloud storage
 	 *
 	 * @param boolean $local_ready Whether local package is ready
-	 * @param string $type Package type
-	 * @param string $slug Package slug
+	 * @param string  $type Package type
+	 * @param string  $slug Package slug
 	 * @since 1.0.0
 	 */
 	public function upserv_saved_remote_package_to_local( $local_ready, $type, $slug ) {
@@ -839,8 +839,8 @@ class Cloud_Storage_Manager {
 	 * Handle manual package upload to cloud storage
 	 *
 	 * @param boolean $result Upload result
-	 * @param string $type Package type
-	 * @param string $slug Package slug
+	 * @param string  $type Package type
+	 * @param string  $slug Package slug
 	 * @since 1.0.0
 	 */
 	public function upserv_did_manual_upload_package( $result, $type, $slug ) {
@@ -880,8 +880,8 @@ class Cloud_Storage_Manager {
 	 * Determine whether to save remote package locally
 	 *
 	 * @param boolean $save Current save decision
-	 * @param string $slug Package slug
-	 * @param string $filename Target filename
+	 * @param string  $slug Package slug
+	 * @param string  $filename Target filename
 	 * @param boolean $check_remote Whether to check remote storage
 	 * @return boolean Whether to save package locally
 	 * @since 1.0.0
@@ -925,7 +925,7 @@ class Cloud_Storage_Manager {
 	 *
 	 * @param string $archive_name Archive name
 	 * @param string $archive_path Archive path
-	 * @param array $package_slugs Package slugs to download
+	 * @param array  $package_slugs Package slugs to download
 	 * @since 1.0.0
 	 */
 	public function upserv_before_packages_download( $archive_name, $archive_path, $package_slugs ) {
@@ -968,7 +968,7 @@ class Cloud_Storage_Manager {
 	 *
 	 * @param string $archive_name Archive name
 	 * @param string $archive_path Archive path
-	 * @param array $package_slugs Package slugs to download
+	 * @param array  $package_slugs Package slugs to download
 	 * @since 1.0.0
 	 */
 	public function upserv_before_packages_download_repack( $archive_name, $archive_path, $package_slugs ) {
@@ -1016,10 +1016,10 @@ class Cloud_Storage_Manager {
 	}
 
 	/**
-	 * Handle package API requests
+	 * Redirect package download API requests to cloud storage.
 	 *
 	 * @param string $method API method being called
-	 * @param array $payload Request payload
+	 * @param array  $payload Request payload
 	 * @since 1.0.0
 	 */
 	public function upserv_package_api_request( $method, $payload ) {
@@ -1061,7 +1061,7 @@ class Cloud_Storage_Manager {
 			$this->doing_redirect = wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 
 			/**
-			 * Fired after a package is downloaded.
+			 * Fired after the package download redirect is issued.
 			 *
 			 * @param string $package_slug the slug of the downloaded package
 			 * @since 1.0.0
@@ -1077,7 +1077,7 @@ class Cloud_Storage_Manager {
 	 *
 	 * @param string $slug Package slug
 	 * @param string $filename Target filename
-	 * @param object $cache Cache instance
+	 * @param Cache  $cache Cache instance
 	 * @since 1.0.0
 	 */
 	public function upserv_find_package_no_cache( $slug, $filename, $cache ) {
@@ -1152,7 +1152,7 @@ class Cloud_Storage_Manager {
 	 * Get package information from cloud storage
 	 *
 	 * @param array|false $package_info Current package information
-	 * @param string $slug Package slug
+	 * @param string      $slug Package slug
 	 * @return array|false Updated package information
 	 * @since 1.0.0
 	 */
@@ -1284,7 +1284,7 @@ class Cloud_Storage_Manager {
 	/**
 	 * Get batch package information from cloud storage
 	 *
-	 * @param array $packages Current packages information
+	 * @param array  $packages Current packages information
 	 * @param string $search Search term
 	 * @return array Updated packages information
 	 * @since 1.0.0
@@ -1386,7 +1386,7 @@ class Cloud_Storage_Manager {
 	 * Check if package is whitelisted in cloud storage
 	 *
 	 * @param boolean $whitelisted Current whitelist status
-	 * @param string $package_slug Package slug
+	 * @param string  $package_slug Package slug
 	 * @return boolean Updated whitelist status
 	 * @since 1.0.0
 	 */
@@ -1409,7 +1409,7 @@ class Cloud_Storage_Manager {
 	/**
 	 * Update package data when whitelisted
 	 *
-	 * @param array $data Package data
+	 * @param array  $data Package data
 	 * @param string $slug Package slug
 	 * @return array Updated package data
 	 * @since 1.0.0
@@ -1426,7 +1426,7 @@ class Cloud_Storage_Manager {
 	/**
 	 * Update package data when unwhitelisted
 	 *
-	 * @param array $data Package data
+	 * @param array  $data Package data
 	 * @param string $slug Package slug
 	 * @return array Updated package data
 	 * @since 1.0.0
@@ -1474,7 +1474,7 @@ class Cloud_Storage_Manager {
 	 * Check if virtual folder exists in cloud storage
 	 *
 	 * @param string $name Folder name
-	 * @return boolean Whether folder exists
+	 * @return array|false Object metadata when the folder marker exists, or false.
 	 * @since 1.0.0
 	 */
 	protected function virtual_folder_exists( $name ) {
@@ -1489,7 +1489,7 @@ class Cloud_Storage_Manager {
 	/**
 	 * Create a virtual folder in cloud storage
 	 *
-	 * @param string $name Folder name
+	 * @param string      $name Folder name
 	 * @param string|null $storage_unit Storage unit name
 	 * @return boolean Whether folder was created
 	 * @since 1.0.0

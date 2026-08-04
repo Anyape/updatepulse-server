@@ -244,7 +244,7 @@ class Data_Manager {
 	 * Determine whether a directory name is a valid data directory.
 	 *
 	 * @param string $dir The directory name to check.
-	 * @param bool $require_persistent Whether the directory must be persistent.
+	 * @param bool   $require_persistent Whether the directory must be persistent.
 	 * @return bool Whether the directory is valid.
 	 * @since 1.0.0
 	 */
@@ -266,7 +266,7 @@ class Data_Manager {
 	 * Clean up transient data if needed.
 	 *
 	 * @param string $type The type of data to clean up.
-	 * @param bool $force Whether to force cleanup regardless of conditions.
+	 * @param bool   $force Whether to force cleanup regardless of conditions.
 	 * @return bool Whether cleanup was performed.
 	 * @since 1.0.0
 	 */
@@ -299,7 +299,7 @@ class Data_Manager {
 	 * Clean up a data directory if it exceeds its size limit or if forced.
 	 *
 	 * @param string $type The directory to clean up.
-	 * @param bool $force Whether to force cleanup regardless of conditions.
+	 * @param bool   $force Whether to force cleanup regardless of conditions.
 	 * @return bool Whether cleanup was performed.
 	 * @since 1.0.0
 	 */
@@ -393,8 +393,8 @@ class Data_Manager {
 	 * Create a directory for storing plugin data.
 	 *
 	 * @param string $name The name of the directory to create.
-	 * @param bool $include_htaccess Whether to create an .htaccess file.
-	 * @param bool $is_root_dir Whether this is the root data directory.
+	 * @param bool   $include_htaccess Whether to create an .htaccess file.
+	 * @param bool   $is_root_dir Whether this is the root data directory.
 	 * @return bool Whether the directory was created successfully.
 	 * @since 1.0.0
 	 */
@@ -473,11 +473,11 @@ class Data_Manager {
 	}
 
 	/**
-	 * Register cleanup schedules
+	 * Register cleanup callbacks.
 	 *
-	 * Register action hooks for cleanup events.
+	 * Attach cleanup callbacks to the shared cleanup action.
 	 *
-	 * @return bool Whether the schedules were registered successfully.
+	 * @return bool|null False when skipped during an update API request; otherwise null.
 	 * @since 1.0.0
 	 */
 	protected static function register_cleanup_schedules() {
@@ -500,7 +500,7 @@ class Data_Manager {
 			add_action( 'upserv_cleanup', $hook, 10, 2 );
 
 			/**
-			 * Fired after a cleanup schedule has been registered.
+			 * Fired during scheduler initialization after a cleanup callback has been registered.
 			 *
 			 * @param string $type The type of data for which the schedule was registered
 			 * @param array $params The parameters that are used for the schedule
@@ -550,7 +550,7 @@ class Data_Manager {
 				/**
 				 * Fired after a cleanup event has been scheduled.
 				 *
-				 * @param bool $result Whether the scheduling was successful
+				 * @param bool|int $result The Action Scheduler ID or WordPress cron result.
 				 * @param string $type The type of data for which the event was scheduled
 				 * @param int $timestamp The timestamp at which the event will first run
 				 * @param string $frequency The frequency of the scheduled event

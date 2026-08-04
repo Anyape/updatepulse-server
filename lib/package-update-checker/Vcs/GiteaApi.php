@@ -10,38 +10,38 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 	/**
 	 * Class GiteaApi
 	 *
-	 * This class provides methods to interact with the Gitea API for various operations
-	 * such as fetching releases, tags, branches, and commits. It also handles authentication
-	 * and API request construction.
+	 * This class adapts the compatible GitHub API operations inherited by the update checker
+	 * to a hosted or self-hosted Gitea instance, including authentication and API URLs.
 	 */
 	class GiteaApi extends GitHubApi {
 		use ReleaseAssetSupport;
 		use ReleaseFilteringFeature;
 
 		/**
+		 * Gitea server host.
+		 *
 		 * @var string The host of the Gitea server.
 		 */
 		protected $repository_host;
 
 		/**
+		 * Gitea server protocol.
+		 *
 		 * @var string The protocol used by the Gitea server, either "http" or "https".
 		 */
 		protected $repository_protocol = 'https';
 
 		/**
-		 * @var string Gitea authentication token. Optional.
+		 * Gitea authentication token.
+		 *
+		 * @var string|null Gitea authentication token. Optional.
 		 */
 		protected $access_token;
 
 		/**
-		 * @var bool Indicates if the download filter has been added.
-		 */
-		private $download_filter_added = false;
-
-		/**
 		 * GiteaApi constructor.
 		 *
-		 * @param string $repository_url The URL of the Gitea repository.
+		 * @param string      $repository_url The URL of the Gitea repository.
 		 * @param string|null $access_token Optional Gitea access token.
 		 * @throws InvalidArgumentException If the repository URL is invalid.
 		 */
@@ -70,11 +70,13 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		}
 
 		/**
-		 * Check if the VCS is accessible.
+		 * Verify that the credentials can access the configured user or organization.
 		 *
-		 * @param string $url The URL to check.
+		 * @param string      $url The URL to check.
 		 * @param string|null $access_token Optional Gitea access token.
-		 * @return bool|WP_Error True if accessible, false or WP_Error otherwise.
+		 * @return bool|string True when the credentials are valid for the account, false when
+		 *                     authentication fails, or "failed_org_check" when organization
+		 *                     membership cannot be confirmed.
 		 */
 		public static function test( $url, $access_token = null ) {
 			$instance = new self( $url . 'bogus/', $access_token );
@@ -127,6 +129,13 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 			return true;
 		}
 
+		/**
+		 * Replace a GitHub API prefix with this Gitea instance's API base URL.
+		 *
+		 * @param string $url URL to transform.
+		 * @param string $replace API prefix to replace.
+		 * @return string Transformed URL.
+		 */
 		private function replace_host( $url, $replace = 'https://api.github.com' ) {
 
 			if ( ! str_starts_with( $url, $replace ) ) {
@@ -146,7 +155,7 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		 * Construct a fully qualified URL for an API request.
 		 *
 		 * @param string $url The API endpoint URL.
-		 * @param array $query_params Optional query parameters.
+		 * @param array  $query_params Optional query parameters.
 		 * @return string The fully qualified URL.
 		 */
 		protected function build_api_url( $url, $query_params ) {
@@ -175,7 +184,7 @@ if ( ! class_exists( GiteaApi::class, false ) ) :
 		/**
 		 * Create the value for the "Authorization" header.
 		 *
-		 * @return string
+		 * @return array Authorization request headers.
 		 */
 		public function get_authorization_headers() {
 			return array(

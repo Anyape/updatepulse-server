@@ -1,4 +1,16 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Licenses administration page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string                                          $header         Rendered admin settings header.
+ * @var \Anyape\UpdatePulse\Server\Table\Licenses_Table $licenses_table Licenses list table.
+ * @var array                                           $options        License settings.
+ * @var array                                           $status_options Available license statuses.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div class="wrap upserv-wrap">

@@ -1,4 +1,16 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Plugin help page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string $header       Rendered admin settings header.
+ * @var string $packages_dir Package storage directory.
+ * @var array  $options      Plugin options used by the help content.
+ * @var string $mu_path      Must-use plugin directory path.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div class="wrap upserv-wrap">
@@ -41,9 +53,9 @@
 			<li>
 				<?php
 					printf(
-						// translators: %s is <code>wp updatepulse download_remote_package my-package plugin</code>
+						// translators: %s is a wp updatepulse-server download_remote_package command.
 						esc_html__( '[advanced] calling %s in the command line, with the VCS-related parameters corresponding to a VCS configuration saved in UpdatePulse Server', 'updatepulse-server' ),
-						'<code>' . esc_html( 'wp updatepulse download_remote_package <package-slug> <plugin|theme|generic> <vcs-url> <branch>' ) . '</code>'
+						'<code>' . esc_html( 'wp updatepulse-server download_remote_package <package-slug> <plugin|theme|generic> <vcs-url> <branch>' ) . '</code>'
 					);
 				?>
 			</li>

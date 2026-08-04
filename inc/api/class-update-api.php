@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Anyape\UpdatePulse\Server\Manager\Data_Manager;
 use Anyape\UpdatePulse\Server\Scheduler\Scheduler;
+use Anyape\UpdatePulse\Server\Server\Update\Update_Server;
 use Anyape\Utils\Utils;
 
 /**
@@ -20,7 +21,7 @@ class Update_API {
 	/**
 	 * Is doing API request
 	 *
-	 * @var bool|null
+	 * @var int|null
 	 * @since 1.0.0
 	 */
 	protected static $doing_api_request = null;
@@ -35,7 +36,7 @@ class Update_API {
 	/**
 	 * Update server object
 	 *
-	 * @var object|null
+	 * @var Update_Server|null
 	 * @since 1.0.0
 	 */
 	protected $update_server;
@@ -126,7 +127,7 @@ class Update_API {
 	 *
 	 * Actions to perform when a remote package update has been checked.
 	 *
-	 * @param bool $needs_update Whether the package needs an update.
+	 * @param bool   $needs_update Whether the package needs an update.
 	 * @param string $type The type of the package.
 	 * @param string $slug The slug of the package.
 	 * @since 1.0.0
@@ -140,7 +141,7 @@ class Update_API {
 	 *
 	 * Actions to perform when a package has been registered from VCS.
 	 *
-	 * @param bool $result The result of the registration.
+	 * @param bool   $result The result of the registration.
 	 * @param string $slug The slug of the package.
 	 * @since 1.0.0
 	 */
@@ -156,7 +157,7 @@ class Update_API {
 	 *
 	 * Actions to perform when a package has been removed.
 	 *
-	 * @param bool $result The result of the removal.
+	 * @param bool   $result The result of the removal.
 	 * @param string $type The type of the package.
 	 * @param string $slug The slug of the package.
 	 * @since 1.0.0
@@ -173,9 +174,9 @@ class Update_API {
 	 *
 	 * Filter package information before the update check.
 	 *
-	 * @param array $info Package information.
+	 * @param array  $info Package information.
 	 * @param object $api_obj The API object.
-	 * @param mixed $ref Reference value.
+	 * @param mixed  $ref Reference value.
 	 * @param object $update_checker The update checker object.
 	 * @return array Filtered package information.
 	 * @since 1.0.0
@@ -214,9 +215,9 @@ class Update_API {
 	 *
 	 * Filter package information after the update check.
 	 *
-	 * @param array $info Package information.
+	 * @param array  $info Package information.
 	 * @param object $api_obj The API object.
-	 * @param mixed $ref Reference value.
+	 * @param mixed  $ref Reference value.
 	 * @param object $checker The update checker object.
 	 * @return array Filtered package information.
 	 * @since 1.0.0
@@ -257,7 +258,7 @@ class Update_API {
 	 *
 	 * Determine whether the current request is an Update API request.
 	 *
-	 * @return bool Whether the current request is an Update API request.
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 * @since 1.0.0
 	 */
 	public static function is_doing_api_request() {
@@ -293,7 +294,7 @@ class Update_API {
 	 *
 	 * @param string $slug The package slug.
 	 * @param string $type The package type.
-	 * @return bool|mixed Result of the remote update check.
+	 * @return bool|null Whether an update is needed, or null when no local package exists.
 	 * @since 1.0.0
 	 */
 	public function check_remote_update( $slug, $type ) {
@@ -313,9 +314,9 @@ class Update_API {
 	 *
 	 * Download and process a package from a remote source.
 	 *
-	 * @param string $slug The package slug.
+	 * @param string      $slug The package slug.
 	 * @param string|null $type The package type.
-	 * @param bool $force Whether to force the download.
+	 * @param bool        $force Whether to force the download.
 	 * @return bool Whether the download was successful.
 	 * @since 1.0.0
 	 */
@@ -405,6 +406,7 @@ class Update_API {
 		/**
 		 * Filter the package update remote check frequency set in the configuration.
 		 * Fired during client update API request.
+		 * It can also fire after successful VCS package registration.
 		 *
 		 * @param string $frequency The frequency set in the configuration.
 		 * @param string $package_slug The slug of the package to check for updates.
@@ -427,8 +429,9 @@ class Update_API {
 		/**
 		 * Fired after a remote check event has been scheduled for a package.
 		 * Fired during client update API request.
+		 * It can also fire after successful VCS package registration.
 		 *
-		 * @param bool $result Whether the event was scheduled.
+		 * @param bool|int $result The Action Scheduler ID or WordPress cron result.
 		 * @param string $package_slug Slug of the package for which the event was scheduled.
 		 * @param int $timestamp Timestamp for when to run the event the first time after it's been scheduled.
 		 * @param string $frequency Frequency at which the event would be ran.
@@ -505,7 +508,7 @@ class Update_API {
 		 * Fired before handling the request made by a client plugin, theme, or generic package to the plugin's API.
 		 * Fired during client update API request.
 		 *
-		 * @param array $request_params The parameters or the request to the API.
+		 * @param array $request_params The parameters of the request to the API.
 		 * @since 1.0.0
 		 */
 		do_action( 'upserv_before_handle_update_request', $params );
@@ -555,7 +558,7 @@ class Update_API {
 			'vcs_config'  => isset( $vcs_config ) ? $vcs_config : null,
 		);
 		/**
-		 * Filter the class name to use to instantiate a `Anyape\UpdatePulse\Server\Server\Update\Update_Server` object.
+		 * Filter the class name used whenever an update server is initialized.
 		 * Fired during client update API request.
 		 *
 		 * @param string $class_name The class name to use to instantiate a `Anyape\UpdatePulse\Server\Server\Update\Update_Server` object.
@@ -570,7 +573,7 @@ class Update_API {
 			$filter_args
 		);
 		/**
-		 * Filter the arguments to pass to the constructor of the `Anyape\UpdatePulse\Server\Server\Update\Update_Server` object.
+		 * Filter the constructor arguments whenever an update server is initialized.
 		 * Fired during client update API request.
 		 *
 		 * @param array $args The arguments to pass to the constructor of the `Anyape\UpdatePulse\Server\Server\Update\Update_Server` object.

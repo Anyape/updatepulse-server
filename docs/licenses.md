@@ -976,7 +976,7 @@ ___
 ### upserv_registered_license_schedule
 
 ```php
-do_action( 'upserv_registered_license_schedule', string $scheduled_hook );
+do_action( 'upserv_registered_license_schedule', callable $scheduled_hook );
 ```
 
 **Description**  
@@ -984,7 +984,7 @@ Fired after the license maintenance action has been registered.
 
 **Parameters**  
 `$scheduled_hook`
-> (string) the license event hook that has been registered
+> (callable) the license maintenance callback that has been registered
 
 ___
 ### upserv_cleared_license_schedule
@@ -1000,7 +1000,7 @@ ___
 ### upserv_scheduled_license_event
 
 ```php
-do_action( 'upserv_scheduled_license_event', bool $result, int $timestamp, string $frequency, string $hook );
+do_action( 'upserv_scheduled_license_event', bool|int $result, int $timestamp, string $frequency, string $hook );
 ```
 
 **Description**  
@@ -1008,19 +1008,16 @@ Fired after the license maintenance event has been scheduled.
 
 **Parameters**  
 `$result`
-> (bool) `true` if the event was scheduled, `false` otherwise
+> (bool|int) the Action Scheduler action ID or WordPress cron scheduling result
 
 `$timestamp`
 > (int) timestamp for when to run the event the first time after it's been scheduled
 
 `$frequency`
-> (string) frequency at which the event would be ran
+> (string) frequency at which the event will run
 
 `$hook`
 > (string) event hook to fire when the event is ran
-
-`$params`
-> (array) parameters passed to the actions registered to $hook when the event is ran
 
 ___
 ### upserv_browse_licenses
@@ -1263,16 +1260,16 @@ ___
 ### upserv_license_server
 
 ```php
-apply_filters( 'upserv_license_server', mixed $license_server );
+apply_filters( 'upserv_license_server', License_Server $license_server );
 ```
 
 **Description**  
-Filter the UPServ_License_Server object to use.
+Filter the `License_Server` instance to use.
 Fired during client license API request.
 
 **Parameters**  
 `$license_server`
-> (mixed) the UPServ_License_Server object
+> (License_Server) the license server instance
 
 ___
 ### upserv_license_api_config

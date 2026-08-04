@@ -1,4 +1,24 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Packages table row template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var \Anyape\UpdatePulse\Server\Table\Packages_Table $table       Packages list table.
+ * @var array                                           $columns     Visible table columns.
+ * @var array                                           $hidden      Hidden table column names.
+ * @var int|string                                      $record_key  Package slug.
+ * @var array                                           $record      Prepared package record.
+ * @var array                                           $records     All prepared package records.
+ * @var string                                          $date_format Date display format.
+ * @var string                                          $time_format Time display format.
+ * @var \DateTimeZone                                   $time_zone   Display timezone.
+ * @var string                                          $primary     Primary column name.
+ * @var string|false                                    $page        Current admin page identifier.
+ * @var string|false                                    $search      Current package search query.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <tr id="<?php echo esc_attr( $record_key ); ?>">

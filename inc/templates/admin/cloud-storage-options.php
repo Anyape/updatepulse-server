@@ -1,4 +1,15 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Cloud storage options template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var bool   $use_cloud_storage Whether cloud storage is enabled.
+ * @var string $virtual_dir       Virtual package directory.
+ * @var array  $options           Cloud storage settings.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <h3><?php esc_html_e( 'Cloud Storage', 'updatepulse-server' ); ?></h3>

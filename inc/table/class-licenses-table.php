@@ -42,7 +42,7 @@ class Licenses_Table extends WP_List_Table {
 	/**
 	 * Constructor
 	 *
-	 * Sets up the table properties and hooks
+	 * Sets up the table properties.
 	 *
 	 * @since 1.0.0
 	 */
@@ -91,7 +91,7 @@ class Licenses_Table extends WP_List_Table {
 	 *
 	 * Default handler for displaying column data
 	 *
-	 * @param array $item The row item
+	 * @param array  $item The row item
 	 * @param string $column_name The column name
 	 * @return mixed The column value
 	 * @since 1.0.0
@@ -308,7 +308,7 @@ class Licenses_Table extends WP_List_Table {
 	 * Create action links for each row
 	 *
 	 * @param array $actions The actions array
-	 * @param bool $always_visible Whether actions should be always visible
+	 * @param bool  $always_visible Whether actions should be always visible
 	 * @return string HTML for the row actions
 	 * @since 1.0.0
 	 */

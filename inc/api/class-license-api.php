@@ -21,7 +21,7 @@ class License_API {
 	/**
 	 * Is doing API request
 	 *
-	 * @var boolean|null
+	 * @var int|null
 	 * @since 1.0.0
 	 */
 	protected static $doing_api_request = null;
@@ -958,7 +958,7 @@ class License_API {
 	/**
 	 * Is doing API request
 	 *
-	 * @return boolean True if doing API request, false otherwise
+	 * @return int|null One for a match, zero for no match, or null when the URL is unavailable.
 	 * @since 1.0.0
 	 */
 	public static function is_doing_api_request() {
@@ -1073,7 +1073,7 @@ class License_API {
 	 *
 	 * @param string $code
 	 * @param string $message
-	 * @param array $data
+	 * @param array  $data
 	 * @return array The response
 	 * @since 1.0.0
 	 */
@@ -1742,6 +1742,7 @@ class License_API {
 	protected function init_server() {
 		/**
 		 * Filter the License Server instance.
+		 * Fired during client license API request.
 		 *
 		 * @param License_Server $license_server The license server instance.
 		 * @since 1.0.0

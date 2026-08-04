@@ -156,7 +156,7 @@ class License_Manager {
 			/**
 			 * Fired after the license maintenance event has been scheduled.
 			 *
-			 * @param bool $result Whether the event was scheduled successfully
+			 * @param bool|int $result The Action Scheduler ID or WordPress cron result.
 			 * @param int $timestamp Timestamp for when to run the event the first time
 			 * @param string $frequency Frequency at which the event would be ran
 			 * @param string $hook Event hook to fire when the event is ran
@@ -350,13 +350,13 @@ class License_Manager {
 	}
 
 	/**
-	 * Save page options
+	 * Pass through a submitted page option value.
 	 *
-	 * Handles saving of screen options.
+	 * WordPress performs the actual option persistence after this filter returns.
 	 *
-	 * @param mixed $status Status of the option
+	 * @param mixed  $status Status of the option
 	 * @param string $option Option name
-	 * @param mixed $value Option value
+	 * @param mixed  $value Option value
 	 * @return mixed Filtered option value
 	 * @since 1.0.0
 	 */
@@ -400,7 +400,7 @@ class License_Manager {
 	 * Populates license status cells in the packages table.
 	 *
 	 * @param string $column_name Name of the column
-	 * @param array $record Record data
+	 * @param array  $record Record data
 	 * @param string $record_key Record identifier
 	 * @since 1.0.0
 	 */
@@ -453,7 +453,7 @@ class License_Manager {
 	 *
 	 * Updates active state for the licenses tab.
 	 *
-	 * @param array $states Current tab states
+	 * @param array  $states Current tab states
 	 * @param string $page Current page
 	 * @return array Modified tab states
 	 * @since 1.0.0
@@ -492,7 +492,7 @@ class License_Manager {
 		/**
 		 * Fired after the license maintenance action has been registered.
 		 *
-		 * @param string $scheduled_hook The license event hook that has been registered
+		 * @param callable $scheduled_hook The license maintenance callback that has been registered.
 		 */
 		do_action( 'upserv_registered_license_schedule', $scheduled_hook );
 	}
@@ -706,7 +706,7 @@ class License_Manager {
 	 * Updates status for multiple licenses at once.
 	 *
 	 * @param string $status New status to apply
-	 * @param array $license_data Licenses to update
+	 * @param array  $license_data Licenses to update
 	 * @since 1.0.0
 	 */
 	protected function change_license_statuses_bulk( $status, $license_data ) {
@@ -769,7 +769,7 @@ class License_Manager {
 	 * Removes multiple licenses from the system.
 	 *
 	 * @param array $license_ids IDs of licenses to delete
-	 * @return array IDs of deleted licenses
+	 * @return array License IDs submitted for deletion.
 	 * @since 1.0.0
 	 */
 	protected function delete_license_bulk( $license_ids ) {

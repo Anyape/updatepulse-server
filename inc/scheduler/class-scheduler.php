@@ -59,7 +59,7 @@ class Scheduler {
 	 * Routes method calls to either ActionScheduler functions or native WordPress functions.
 	 *
 	 * @param string $name The method name.
-	 * @param array $arguments The method arguments.
+	 * @param array  $arguments The method arguments.
 	 * @return mixed|WP_Error The result of the method call or error if method doesn't exist.
 	 * @since 1.0.0
 	 */
@@ -114,15 +114,15 @@ class Scheduler {
 	/**
 	 * Schedule single action
 	 *
-	 * Schedule a one-time action event.
+	 * Schedule a one-time WordPress cron event for the fallback scheduler.
 	 *
-	 * @param int $timestamp When the action should run (Unix timestamp).
+	 * @param int    $timestamp When the action should run (Unix timestamp).
 	 * @param string $hook The hook to execute.
-	 * @param array $args Arguments to pass to the hook's callback.
+	 * @param array  $args Arguments to pass to the hook's callback.
 	 * @param string $group The group to assign this action to.
-	 * @param bool $unique Whether to ensure this action is unique.
-	 * @param int $priority The priority of the action.
-	 * @return bool|int The action ID or false if not scheduled.
+	 * @param bool   $unique Whether to ensure this action is unique.
+	 * @param int    $priority The priority of the action.
+	 * @return bool Whether the event was scheduled.
 	 * @since 1.0.0
 	 */
 	protected function schedule_single_action( $timestamp, $hook, $args = array(), $group = '', $unique = false, $priority = 10 ) {  // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
@@ -137,16 +137,16 @@ class Scheduler {
 	/**
 	 * Schedule recurring action
 	 *
-	 * Schedule a repeating action event.
+	 * Schedule a repeating WordPress cron event for the fallback scheduler.
 	 *
-	 * @param int $timestamp When the action should first run (Unix timestamp).
-	 * @param int $interval_in_seconds How long to wait between runs.
+	 * @param int    $timestamp When the action should first run (Unix timestamp).
+	 * @param int    $interval_in_seconds How long to wait between runs.
 	 * @param string $hook The hook to execute.
-	 * @param array $args Arguments to pass to the hook's callback.
+	 * @param array  $args Arguments to pass to the hook's callback.
 	 * @param string $group The group to assign this action to.
-	 * @param bool $unique Whether to ensure this action is unique.
-	 * @param int $priority The priority of the action.
-	 * @return bool|int The action ID or false if not scheduled.
+	 * @param bool   $unique Whether to ensure this action is unique.
+	 * @param int    $priority The priority of the action.
+	 * @return bool Whether the event was scheduled.
 	 * @since 1.0.0
 	 */
 	protected function schedule_recurring_action( $timestamp, $interval_in_seconds, $hook, $args = array(), $group = '', $unique = false, $priority = 10 ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
@@ -185,7 +185,7 @@ class Scheduler {
 	 * Cancel all scheduled instances of a specific action.
 	 *
 	 * @param string $hook The action hook to unschedule.
-	 * @param array $args Args matching those of the action to unschedule.
+	 * @param array  $args Args matching those of the action to unschedule.
 	 * @param string $group The group to which the action belongs.
 	 * @return void
 	 * @since 1.0.0
@@ -205,7 +205,7 @@ class Scheduler {
 	 * Retrieve the next timestamp for a scheduled action.
 	 *
 	 * @param string $hook The hook to check.
-	 * @param array $args Args matching those of the action to check.
+	 * @param array  $args Args matching those of the action to check.
 	 * @param string $group The group to which the action belongs.
 	 * @return int|false The timestamp for the next occurrence or false if not scheduled.
 	 * @since 1.0.0
@@ -220,7 +220,7 @@ class Scheduler {
 	 * Determine whether an action is currently scheduled.
 	 *
 	 * @param string $hook The hook to check.
-	 * @param array $args Args matching those of the action to check.
+	 * @param array  $args Args matching those of the action to check.
 	 * @param string $group The group to which the action belongs.
 	 * @return bool Whether the action is scheduled.
 	 * @since 1.0.0

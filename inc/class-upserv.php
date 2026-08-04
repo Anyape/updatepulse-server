@@ -1,9 +1,14 @@
 <?php
+/**
+ * Main UpdatePulse Server plugin class.
+ *
+ * @package UPServ
+ */
 
 namespace Anyape\UpdatePulse\Server;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 use Exception;
@@ -43,7 +48,7 @@ class UPServ {
 	/**
 	 * Constructor
 	 *
-	 * @param boolean $init_hooks Whether to initialize hooks
+	 * @param boolean $init_hooks Whether to initialize hooks.
 	 * @since 1.0.0
 	 */
 	public function __construct( $init_hooks = false ) {
@@ -113,9 +118,9 @@ class UPServ {
 	 *
 	 * Logs information about failed scheduled actions when debug mode is enabled.
 	 *
-	 * @param int $action_id The ID of the failed action
-	 * @param Exception $exception The exception that was thrown
-	 * @param string $context Additional context information
+	 * @param int       $action_id The ID of the failed action.
+	 * @param Exception $exception The exception that was thrown.
+	 * @param string    $context Additional context information.
 	 * @since 1.0.0
 	 */
 	public function action_scheduler_failed_execution( $action_id, Exception $exception, $context = '' ) {
@@ -185,20 +190,9 @@ class UPServ {
 	}
 
 	/**
-	 * Uninstall plugin
-	 *
-	 * Runs on plugin uninstallation.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function uninstall() {
-		require_once UPSERV_PLUGIN_PATH . 'uninstall.php';
-	}
-
-	/**
 	 * Get all plugin options
 	 *
-	 * Retrieves the plugin's options from the database.
+	 * Retrieves the stored options and merges them with the current defaults.
 	 *
 	 * @return array Plugin options
 	 * @since 1.0.0
@@ -224,8 +218,8 @@ class UPServ {
 	 *
 	 * Updates the plugin's options in the database.
 	 *
-	 * @param array $options New options to update
-	 * @return bool Whether the update was successful
+	 * @param array $options New options to update.
+	 * @return bool Whether the stored option value changed.
 	 * @since 1.0.0
 	 */
 	public function update_options( $options ) {
@@ -256,8 +250,8 @@ class UPServ {
 	 *
 	 * Retrieves a specific option by its path.
 	 *
-	 * @param string|array $path Option path
-	 * @param mixed $_default Default value if option not found
+	 * @param string $path Option path using slash notation.
+	 * @param mixed  $_default Default value if option not found.
 	 * @return mixed Option value
 	 * @since 1.0.0
 	 */
@@ -285,8 +279,8 @@ class UPServ {
 	 *
 	 * Sets an option value in memory without saving to database.
 	 *
-	 * @param string|array $path Option path
-	 * @param mixed $value Option value
+	 * @param string $path Option path using slash notation.
+	 * @param mixed  $value Option value.
 	 * @return array Updated options
 	 * @since 1.0.0
 	 */
@@ -305,9 +299,9 @@ class UPServ {
 	 *
 	 * Updates a specific option by its path and saves to database.
 	 *
-	 * @param string|array $path Option path
-	 * @param mixed $value Option value
-	 * @return bool Whether the update was successful
+	 * @param string $path Option path using slash notation.
+	 * @param mixed  $value Option value.
+	 * @return bool Whether the stored option value changed.
 	 * @since 1.0.0
 	 */
 	public function update_option( $path, $value ) {
@@ -319,9 +313,9 @@ class UPServ {
 	}
 
 	/**
-	 * Initialize plugin
+	 * Handle deferred initialization tasks
 	 *
-	 * Runs during WordPress init hook to set up the plugin.
+	 * Flushes rewrite rules when requested and registers activation-result notices.
 	 *
 	 * @since 1.0.0
 	 */
@@ -359,7 +353,7 @@ class UPServ {
 	 *
 	 * Adds stylesheets for the admin interface.
 	 *
-	 * @param array $styles Existing styles
+	 * @param array $styles Existing styles.
 	 * @return array Modified styles
 	 * @since 1.0.0
 	 */
@@ -385,7 +379,7 @@ class UPServ {
 	 *
 	 * Adds JavaScript files for the admin interface.
 	 *
-	 * @param array $scripts Existing scripts
+	 * @param array $scripts Existing scripts.
 	 * @return array Modified scripts
 	 * @since 1.0.0
 	 */
@@ -404,12 +398,12 @@ class UPServ {
 	}
 
 	/**
-	 * Process script localization
+	 * Normalize script localization values
 	 *
-	 * Formats localization strings for JavaScript files.
+	 * Converts localization values supplied as arrays into newline-delimited strings.
 	 *
-	 * @param array $l10n Localization data
-	 * @param string $script Script name
+	 * @param array  $l10n Localization data.
+	 * @param string $script Script name.
 	 * @return array Modified localization data
 	 * @since 1.0.0
 	 */
@@ -428,11 +422,11 @@ class UPServ {
 	}
 
 	/**
-	 * Enqueue admin scripts and styles
+	 * Enqueue assets on UpdatePulse admin pages
 	 *
-	 * Loads the necessary assets for admin pages.
+	 * Loads the registered admin assets only for UpdatePulse page hooks.
 	 *
-	 * @param string $hook Current admin page hook
+	 * @param string $hook Current admin page hook.
 	 * @since 1.0.0
 	 */
 	public function admin_enqueue_scripts( $hook ) {
@@ -479,7 +473,7 @@ class UPServ {
 	 *
 	 * Registers navigation tabs for the admin interface.
 	 *
-	 * @param array $links Existing tab links
+	 * @param array $links Existing tab links.
 	 * @return array Modified tab links
 	 * @since 1.0.0
 	 */
@@ -497,8 +491,8 @@ class UPServ {
 	 *
 	 * Sets active states for navigation tabs.
 	 *
-	 * @param array $states Existing tab states
-	 * @param string $page Current page
+	 * @param array  $states Existing tab states.
+	 * @param string $page Current page.
 	 * @return array Modified tab states
 	 * @since 1.0.0
 	 */
@@ -513,7 +507,7 @@ class UPServ {
 	 *
 	 * Adds custom links to the plugin's entry in the plugins list.
 	 *
-	 * @param array $links Existing plugin action links
+	 * @param array $links Existing plugin action links.
 	 * @return array Modified plugin action links
 	 * @since 1.0.0
 	 */
@@ -528,7 +522,7 @@ class UPServ {
 	/**
 	 * Set action scheduler retention period
 	 *
-	 * Controls how long scheduled actions are kept in the database.
+	 * Limits Action Scheduler retention to one day.
 	 *
 	 * @return int Retention period in seconds
 	 * @since 1.0.0
@@ -540,10 +534,10 @@ class UPServ {
 	/**
 	 * Modify admin template arguments
 	 *
-	 * Adds or modifies arguments passed to admin templates.
+	 * Adds the rendered settings header to plugin page templates.
 	 *
-	 * @param array $args Existing template arguments
-	 * @param string $template_name Name of the template
+	 * @param array  $args Existing template arguments.
+	 * @param string $template_name Name of the template.
 	 * @return array Modified template arguments
 	 * @since 1.0.0
 	 */
@@ -580,11 +574,11 @@ class UPServ {
 	/**
 	 * Locate template file
 	 *
-	 * Finds a template file in the theme or plugin directories.
+	 * Resolves a theme override when present, otherwise uses the plugin template path.
 	 *
-	 * @param string $template_name Template name
-	 * @param bool $load Whether to load the template
-	 * @param bool $required_once Whether to use require_once or require
+	 * @param string $template_name Template name.
+	 * @param bool   $load Whether to load the template.
+	 * @param bool   $required_once Whether to use require_once or require.
 	 * @return string Template path
 	 * @since 1.0.0
 	 */
@@ -635,11 +629,11 @@ class UPServ {
 	/**
 	 * Locate admin template file
 	 *
-	 * Finds an admin template file in the plugin directory.
+	 * Resolves the filterable plugin admin-template path and optionally loads it.
 	 *
-	 * @param string $template_name Template name
-	 * @param bool $load Whether to load the template
-	 * @param bool $required_once Whether to use require_once or require
+	 * @param string $template_name Template name.
+	 * @param bool   $load Whether to load the template.
+	 * @param bool   $required_once Whether to use require_once or require.
 	 * @return string Template path
 	 * @since 1.0.0
 	 */
@@ -677,7 +671,7 @@ class UPServ {
 	public function setup_mu_plugin_failure_notice() {
 		$class   = 'notice notice-error';
 		$message = sprintf(
-			// translators: %1$s is the <code>path</code> to the mu-plugins directory, %2$s is the <code>path</code> of the source MU Plugin
+			// translators: %1$s is the <code>path</code> to the mu-plugins directory, %2$s is the <code>path</code> of the source MU Plugin.
 			esc_html__( 'Permission errors for %1$s - could not setup the default optimizer MU Plugin. You may create the directory if necessary and manually copy %2$s in it (recommended).', 'updatepulse-server' ),
 			'<code>' . trailingslashit( wp_normalize_path( WPMU_PLUGIN_DIR ) ) . '</code>',
 			'<code>' . wp_normalize_path( UPSERV_PLUGIN_PATH . 'optimisation/upserv-default-optimizer.php</code>' ),
@@ -696,7 +690,7 @@ class UPServ {
 	public function setup_mu_plugin_success_notice() {
 		$class   = 'notice notice-info is-dismissible';
 		$message = sprintf(
-			// translators: %1$s is the <code>path</code> to the mu-plugin
+			// translators: %1$s is the <code>path</code> to the mu-plugin.
 			esc_html__( 'An optimizer MU Plugin has been confirmed to be installed in %1$s.', 'updatepulse-server' ),
 			'<code>' . trailingslashit( wp_normalize_path( WPMU_PLUGIN_DIR ) ) . 'upserv-default-optimizer.php</code>'
 		);
@@ -707,9 +701,9 @@ class UPServ {
 	/**
 	 * Display settings header
 	 *
-	 * Renders the header for settings pages with notices.
+	 * Renders the settings title, an optional notice, and the navigation tabs.
 	 *
-	 * @param string|array $notice Optional notice to display
+	 * @param string|array $notice Optional notice to display.
 	 * @since 1.0.0
 	 */
 	public function display_settings_header( $notice ) {
@@ -813,7 +807,7 @@ class UPServ {
 	/**
 	 * Get tab states
 	 *
-	 * Determines which tab is currently active.
+	 * Builds tab states for the current UpdatePulse admin page.
 	 *
 	 * @return array Tab states
 	 * @since 1.0.0
@@ -842,8 +836,8 @@ class UPServ {
 	 *
 	 * Loads stylesheets for the admin interface.
 	 *
-	 * @param array $styles Styles to enqueue
-	 * @return array Enqueued styles
+	 * @param array $styles Styles to enqueue.
+	 * @return array Filtered style definitions.
 	 * @since 1.0.0
 	 */
 	protected function enqueue_styles( $styles ) {
@@ -887,8 +881,8 @@ class UPServ {
 	 *
 	 * Loads JavaScript files for the admin interface.
 	 *
-	 * @param array $scripts Scripts to enqueue
-	 * @return array Enqueued scripts
+	 * @param array $scripts Scripts to enqueue.
+	 * @return array Filtered script definitions.
 	 * @since 1.0.0
 	 */
 	protected function enqueue_scripts( $scripts ) {

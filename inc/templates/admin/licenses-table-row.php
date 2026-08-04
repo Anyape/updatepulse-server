@@ -1,4 +1,22 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Licenses table row template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string                                          $bulk_value  JSON-encoded license data for bulk actions.
+ * @var \Anyape\UpdatePulse\Server\Table\Licenses_Table $table       Licenses list table.
+ * @var array                                           $columns     Visible table columns.
+ * @var array                                           $hidden      Hidden table column names.
+ * @var int|string                                      $record_key  Record key.
+ * @var array                                           $record      Prepared license record.
+ * @var array                                           $records     All prepared license records.
+ * @var string                                          $date_format Date display format.
+ * @var string                                          $primary     Primary column name.
+ * @var string|false                                    $page        Current admin page identifier.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <tr>

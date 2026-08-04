@@ -88,28 +88,28 @@ class Update_Server {
 	/**
 	 * Branch name
 	 *
-	 * @var string
+	 * @var string|null
 	 * @since 1.0.0
 	 */
 	protected $branch;
 	/**
 	 * VCS credentials
 	 *
-	 * @var array|null
+	 * @var array|string|null
 	 * @since 1.0.0
 	 */
 	protected $credentials;
 	/**
 	 * Version control system type
 	 *
-	 * @var string
+	 * @var string|null
 	 * @since 1.0.0
 	 */
 	protected $vcs_type;
 	/**
 	 * Whether VCS is self-hosted
 	 *
-	 * @var bool
+	 * @var bool|null
 	 * @since 1.0.0
 	 */
 	protected $self_hosted;
@@ -152,13 +152,13 @@ class Update_Server {
 	/**
 	 * Constructor
 	 *
-	 * @param string $server_url The server URL
-	 * @param string $server_dir The server directory
-	 * @param string|false $vcs_url The VCS URL
-	 * @param string $branch The branch name
-	 * @param array|null $credentials The VCS credentials
-	 * @param string $vcs_type The VCS type
-	 * @param bool $self_hosted Whether VCS is self-hosted
+	 * @param string            $server_url The server URL
+	 * @param string            $server_dir The server directory
+	 * @param string|false      $vcs_url The VCS URL
+	 * @param string|null       $branch The branch name.
+	 * @param array|string|null $credentials The VCS credentials.
+	 * @param string|null       $vcs_type The VCS type.
+	 * @param bool|null         $self_hosted Whether VCS is self-hosted.
 	 * @since 1.0.0
 	 */
 	public function __construct( $server_url, $server_dir, $vcs_url, $branch, $credentials, $vcs_type, $self_hosted ) {
@@ -227,9 +227,9 @@ class Update_Server {
 	 *
 	 * Filter package information before it's processed by the update system.
 	 *
-	 * @param array $info Package information
+	 * @param array  $info Package information
 	 * @param object $api API instance
-	 * @param mixed $ref Reference
+	 * @param mixed  $ref Reference
 	 * @return array Filtered package information
 	 * @since 1.0.0
 	 */
@@ -339,8 +339,8 @@ class Update_Server {
 	 * Download and save a package from remote repository to local storage.
 	 *
 	 * @param string $safe_slug Sanitized package slug
-	 * @param bool $force Whether to force update even if locked
-	 * @return bool|mixed Whether the package was saved successfully
+	 * @param bool   $force Whether to force update even if locked
+	 * @return bool|array|WP_Error Whether the package was saved, or update information when the download is aborted.
 	 * @since 1.0.0
 	 */
 	public function save_remote_package_to_local( $safe_slug, $force = false ) {
@@ -384,7 +384,7 @@ class Update_Server {
 						 *
 						 * @param string $safe_slug The sanitized package slug
 						 * @param string $type The package type
-						 * @param array $info The package information
+						 * @param array|WP_Error $info The package information or update-check error.
 						 */
 						do_action( 'upserv_download_remote_package_aborted', $safe_slug, $this->type, $info );
 
@@ -399,7 +399,7 @@ class Update_Server {
 						/**
 						 * Fires after a remote package has been downloaded
 						 *
-						 * @param string $package Path to the downloaded package file
+						 * @param string|WP_Error $package Path to the downloaded package file, or a download error.
 						 * @param string $type The package type
 						 * @param string $safe_slug The sanitized package slug
 						 */
@@ -549,7 +549,7 @@ class Update_Server {
 	 * Delete a package from the filesystem and clear cache.
 	 *
 	 * @param string $slug Package slug
-	 * @param bool $force Whether to force removal even if locked
+	 * @param bool   $force Whether to force removal even if locked
 	 * @return bool Whether the package was removed successfully
 	 * @since 1.0.0
 	 */
@@ -621,7 +621,7 @@ class Update_Server {
 	 *
 	 * Adds or removes query parameters from a URL.
 	 *
-	 * @param array $args An associative array of query arguments
+	 * @param array  $args An associative array of query arguments
 	 * @param string $url The old URL
 	 * @return string New URL
 	 * @since 1.0.0
@@ -640,7 +640,7 @@ class Update_Server {
 
 		$query = array_merge( $query, $args );
 
-		//Remove null/false arguments.
+		// Remove null/false arguments.
 		$query = array_filter(
 			$query,
 			function ( $value ) {
@@ -783,7 +783,7 @@ class Update_Server {
 			return;
 		}
 
-		//Required for IE, otherwise Content-Disposition may be ignored.
+		// Required for IE, otherwise Content-Disposition may be ignored.
 		if ( ini_get( 'zlib.output_compression' ) ) {
 			@ini_set( 'zlib.output_compression', 'Off' ); // phpcs:ignore WordPress.PHP.IniSet.Risky, WordPress.PHP.NoSilencedErrors.Discouraged
 		}
@@ -856,7 +856,7 @@ class Update_Server {
 	 * Locate a package in local storage or download from remote if needed.
 	 *
 	 * @param string $slug Package slug
-	 * @param bool $check_remote Whether to check remote repositories
+	 * @param bool   $check_remote Whether to check remote repositories
 	 * @return Package|false Package instance or false if not found
 	 * @since 1.0.0
 	 */
@@ -960,7 +960,7 @@ class Update_Server {
 	 *
 	 * Apply filters to package metadata.
 	 *
-	 * @param array $meta Package metadata
+	 * @param array   $meta Package metadata
 	 * @param Request $request Request instance
 	 * @return array Filtered metadata
 	 * @since 1.0.0
@@ -1091,7 +1091,7 @@ class Update_Server {
 		$value = (string) $value;
 		$regex = '/[[:^graph:]]/';
 
-		//preg_replace_callback will return NULL if the input contains invalid Unicode sequences, so only enable the Unicode flag if the input encoding looks valid.
+		// preg_replace_callback will return NULL if the input contains invalid Unicode sequences, so only enable the Unicode flag if the input encoding looks valid.
 		if ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $value, 'UTF-8' ) ) {
 			$regex = $regex . 'u';
 		}
@@ -1104,7 +1104,7 @@ class Update_Server {
 				$escaped = '';
 
 				for ( $i = 0; $i < $length; $i++ ) {
-					//Convert the character to a hexadecimal escape sequence.
+					// Convert the character to a hexadecimal escape sequence.
 					$hex_code = dechex( ord( $matches[0][ $i ] ) );
 					$escaped .= '\x' . strtoupper( str_pad( $hex_code, 2, '0', STR_PAD_LEFT ) );
 				}
@@ -1123,7 +1123,7 @@ class Update_Server {
 	 * Terminate execution and display error message.
 	 *
 	 * @param string $message Error message
-	 * @param int $http_status HTTP status code
+	 * @param int    $http_status HTTP status code
 	 * @since 1.0.0
 	 */
 	protected function exit_with_error( $message = '', $http_status = 500 ) {
@@ -1159,7 +1159,7 @@ class Update_Server {
 
 		$protocol = empty( $_SERVER['SERVER_PROTOCOL'] ) ? 'HTTP/1.1' : sanitize_text_field( wp_unslash( $_SERVER['SERVER_PROTOCOL'] ) );
 
-		//Output a HTTP status header.
+		// Output a HTTP status header.
 		if ( isset( $status_messages[ $http_status ] ) ) {
 			header( $protocol . ' ' . $status_messages[ $http_status ] );
 			$title = $status_messages[ $http_status ];
@@ -1172,7 +1172,7 @@ class Update_Server {
 			$message = $title;
 		}
 
-		//And a basic HTML error message.
+		// And a basic HTML error message.
 		printf(
 			'<html>
 				<head> <title>%1$s</title> </head>
@@ -1347,7 +1347,7 @@ class Update_Server {
 	 * Fetch a package file from a remote URL.
 	 *
 	 * @param string $url Remote file URL
-	 * @param int $timeout Request timeout in seconds
+	 * @param int    $timeout Request timeout in seconds
 	 * @return string|WP_Error Local filename or error
 	 * @since 1.0.0
 	 */
@@ -1467,7 +1467,7 @@ class Update_Server {
 	 *
 	 * Modify metadata based on license status.
 	 *
-	 * @param array $meta Package metadata
+	 * @param array   $meta Package metadata
 	 * @param Request $request Request instance
 	 * @return array Filtered metadata
 	 * @since 1.0.0

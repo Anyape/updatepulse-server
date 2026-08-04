@@ -23,7 +23,7 @@ class Zip_Package_Manager {
 	/**
 	 * Package slug
 	 *
-	 * @var string
+	 * @var string|WP_Error
 	 * @since 1.0.0
 	 */
 	protected $package_slug;
@@ -55,10 +55,10 @@ class Zip_Package_Manager {
 	/**
 	 * Constructor
 	 *
-	 * @param string $package_slug The package slug.
-	 * @param string $received_package_path Path to the received package.
-	 * @param string $tmp_dir Temporary directory path.
-	 * @param string $packages_dir Packages directory path.
+	 * @param string          $package_slug The package slug.
+	 * @param string|WP_Error $received_package_path Path to the received package, or a download error.
+	 * @param string          $tmp_dir Temporary directory path.
+	 * @param string          $packages_dir Packages directory path.
 	 * @since 1.0.0
 	 */
 	public function __construct( $package_slug, $received_package_path, $tmp_dir, $packages_dir ) {
@@ -287,7 +287,7 @@ class Zip_Package_Manager {
 				$wp_filesystem->chmod( $temp_path, false, true );
 
 				/**
-				 * Fired before packing the files received from the Version Control System. Can be used for extra files manipulation.
+				 * Fired during VCS package repacking, before the extracted files are packed.
 				 * Fired during client update API request.
 				 *
 				 * @param string $package_slug The slug of the package.

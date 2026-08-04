@@ -115,7 +115,7 @@ if ( is_wp_error( $response ) ) {
 
 ```php
 $payload = array(
-    'expiry_length' => 999,               // The expiry length in seconds (optional - default value to UPServ_Nonce::DEFAULT_EXPIRY_LENGTH - 30 seconds)
+    'expiry_length' => 999,               // The expiry length in seconds (optional - defaults to Nonce::DEFAULT_EXPIRY_LENGTH - 30 seconds)
     'data' => array(                      // Data to store along the token or true nonce (optional)
         'permanent' => 1,                 // set to a truthy value to create a nonce that never expires
         'key1'      => 'value1',          // custom data
@@ -427,11 +427,11 @@ UpdatePulse Server provides a series of commands to interact with the plugin:
 ```bash
 NAME
 
-  wp updatepulse
+  wp updatepulse-server
 
 SYNOPSIS
 
-  wp updatepulse <command>
+  wp updatepulse-server <command>
 
 SUBCOMMANDS
 
@@ -441,10 +441,10 @@ SUBCOMMANDS
   build_nonce_api_signature        Build a Nonce API signature.
   check_license                    Check a license.
   check_remote_package_update      Checks for updates for a package.
-  cleanup_all                      Cleans up the cache, logs and tmp folders in wp-content/updatepulse-server.
-  cleanup_cache                    Cleans up the cache folder in wp-content/updatepulse-server.
-  cleanup_logs                     Cleans up the logs folder in wp-content/updatepulse-server.
-  cleanup_tmp                      Cleans up the tmp folder in wp-content/updatepulse-server.
+  cleanup_all                      Cleans up the cache, logs and tmp folders in wp-content/uploads/updatepulse-server.
+  cleanup_cache                    Cleans up the cache folder in wp-content/uploads/updatepulse-server.
+  cleanup_logs                     Cleans up the logs folder in wp-content/uploads/updatepulse-server.
+  cleanup_tmp                      Cleans up the tmp folder in wp-content/uploads/updatepulse-server.
   clear_nonces                     Clears nonces.
   create_nonce                     Creates a nonce.
   deactivate_license               Deactivate a license for a domain.
@@ -462,31 +462,31 @@ SUBCOMMANDS
 Subcommands overview:
 
 ```bash
-wp updatepulse activate_license <license_key> <domain>
-wp updatepulse add_license <license_data>
-wp updatepulse browse_licenses <browse_query>
-wp updatepulse build_nonce_api_signature <api_key_id> <api_key> <timestamp> <payload>
-wp updatepulse check_license <license_key_or_id>
-wp updatepulse check_remote_package_update <slug> <type>
-wp updatepulse cleanup_all 
-wp updatepulse cleanup_cache 
-wp updatepulse cleanup_logs 
-wp updatepulse cleanup_tmp 
-wp updatepulse clear_nonces 
-wp updatepulse create_nonce <true_nonce> <expiry_length> <data> <return_type> <store>
-wp updatepulse deactivate_license <license_key> <domain>
-wp updatepulse delete_license <license_key_or_id>
-wp updatepulse delete_nonce <nonce>
-wp updatepulse delete_package <slug>
-wp updatepulse download_remote_package <slug> <type>
-wp updatepulse edit_license <license_data>
-wp updatepulse get_nonce_data <nonce>
-wp updatepulse get_nonce_expiry <nonce>
-wp updatepulse get_package_info <slug>
-wp updatepulse read_license <license_key_or_id>
+wp updatepulse-server activate_license <license_key> <domain>
+wp updatepulse-server add_license <license_data>
+wp updatepulse-server browse_licenses <browse_query>
+wp updatepulse-server build_nonce_api_signature <api_key_id> <api_key> <timestamp> <payload>
+wp updatepulse-server check_license <license_key_or_id>
+wp updatepulse-server check_remote_package_update <slug> <type>
+wp updatepulse-server cleanup_all
+wp updatepulse-server cleanup_cache
+wp updatepulse-server cleanup_logs
+wp updatepulse-server cleanup_tmp
+wp updatepulse-server clear_nonces
+wp updatepulse-server create_nonce <true_nonce> <expiry_length> <data> <return_type> <store>
+wp updatepulse-server deactivate_license <license_key> <domain>
+wp updatepulse-server delete_license <license_key_or_id>
+wp updatepulse-server delete_nonce <nonce>
+wp updatepulse-server delete_package <slug>
+wp updatepulse-server download_remote_package <slug> <type>
+wp updatepulse-server edit_license <license_data>
+wp updatepulse-server get_nonce_data <nonce>
+wp updatepulse-server get_nonce_expiry <nonce>
+wp updatepulse-server get_package_info <slug>
+wp updatepulse-server read_license <license_key_or_id>
 ```
 
-To get more help on a specific subcommand, use `wp updatepulse <subcommand> --help`.
+To get more help on a specific subcommand, use `wp updatepulse-server <subcommand> --help`.
 ___
 ## Consuming Webhooks
 
@@ -605,10 +605,10 @@ upserv_is_doing_api_request();
 ```
 
 **Description**  
-Determine whether the current request is made by a remote client interacting with any of the APIs.
+Determine whether the current request matches any recognized plugin API endpoint.
 
 **Return value**
-> (bool) `true` if the current request is made by a remote client interacting with any of the APIs, `false` otherwise
+> (bool) whether the current request matches a recognized plugin API endpoint
 
 ___
 ### upserv_is_doing_webhook_api_request
@@ -621,7 +621,7 @@ upserv_is_doing_webhook_api_request();
 Determine whether the current request is made by a Webhook.
 
 **Return value**
-> (bool) `true` if the current request is made by a Webhook, `false` otherwise
+> (int|null) `1` for a match, `0` for no match, or `null` when the request URL is unavailable
 
 ___
 ### upserv_init_nonce_auth
@@ -653,7 +653,7 @@ ___
 ### upserv_create_nonce
 
 ```php
-upserv_create_nonce( bool $true_nonce = true, int $expiry_length = UPServ_Nonce::DEFAULT_EXPIRY_LENGTH, array $data = array(), int $return_type = UPServ_Nonce::NONCE_ONLY, bool $store = true, bool|callable );
+upserv_create_nonce( bool $true_nonce = true, int $expiry_length = Nonce::DEFAULT_EXPIRY_LENGTH, array $data = array(), int $return_type = Nonce::NONCE_ONLY, bool $store = true );
 ```
 
 **Description**  
@@ -664,19 +664,19 @@ Creates a cryptographic token - allows creation of tokens that are true one-time
 > (bool) whether the nonce is one-time-use; default `true`  
 
 `$expiry_length`
-> (int) the number of seconds after which the nonce expires; default `UPServ_Nonce::DEFAULT_EXPIRY_LENGTH` - 30 seconds 
+> (int) the number of seconds after which the nonce expires; default `Nonce::DEFAULT_EXPIRY_LENGTH` - 30 seconds
 
 `$data`
 > (array) custom data to save along with the nonce; set an element with key `permanent` to a truthy value to create a nonce that never expires; default `array()`  
 
 `$return_type`
-> (int) whether to return the nonce, or an array of information; default `UPServ_Nonce::NONCE_ONLY`; other accepted value is `UPServ_Nonce::NONCE_INFO_ARRAY`  
+> (int) whether to return the nonce, or an array of information; default `Nonce::NONCE_ONLY`; other accepted value is `Nonce::NONCE_INFO_ARRAY`
 
 `$store`
 > (bool) whether to store the nonce, or let a third party mechanism take care of it; default `true`  
 
 **Return value**
-> (bool|string|array) `false` in case of failure; the cryptographic token string if `$return_type` is set to `UPServ_Nonce::NONCE_ONLY`; an array of information if `$return_type` is set to `UPServ_Nonce::NONCE_INFO_ARRAY` with the following format:
+> (bool|string|array) `false` in case of failure; the cryptographic token string for `Nonce::NONCE_ONLY`; an array of information for `Nonce::NONCE_INFO_ARRAY` with the following format:
 ```php
 array(
     'nonce'      => 'some_value',	// cryptographic token
@@ -701,7 +701,7 @@ Get the expiry timestamp of a nonce.
 > (string) the nonce  
 
 **Return value**
-> (int) the expiry timestamp  
+> (int) the expiry timestamp, or `0` when the nonce is missing or permanent
 
 ___
 ### upserv_get_nonce_data
@@ -718,7 +718,7 @@ Get the data stored along a nonce.
 > (string) the nonce  
 
 **Return value**
-> (int) the expiry timestamp  
+> (mixed) the data stored with the nonce, or an empty array when unavailable
 
 ___
 ### upserv_validate_nonce
@@ -776,17 +776,17 @@ upserv_build_nonce_api_signature( string $api_key_id, string $api_key, int $time
 ```
 
 **Description**  
-Build credentials and signature for UpdatePulse Server Nonce API  
+Build credentials and a signature for the UpdatePulse Server Nonce API.
 
 **Parameters**  
 `$api_key_id`
 > (string) the ID of the Private API Key  
 
 `$api_key`
-> (string) the Private API Key - will not be sent over the Internet  
+> (string) the private API key, which is not included in the result
 
 `$timestamp`
-> (int) the timestamp used to limit the validity of the signature (validity is `MINUTE_IN_SECONDS`)  
+> (int) the timestamp included in the credentials and signature
 
 `$payload`
 > (array) the payload to acquire a reusable token or a true nonce  
@@ -950,7 +950,7 @@ do_action( 'upserv_api_options_updated', array $errors );
 ```
 
 **Description**  
-Fired after the options in "API & Webhooks" have been updated.
+Fired after the "API & Webhooks" options form has been processed, including when validation errors prevent an update.
 
 **Parameters**  
 `$errors`
@@ -1155,7 +1155,7 @@ Filter the value of the nonce before it is created; if `$nonce_value` is truthy,
 > (array) data to store along the nonce  
 
 `$return_type`
-> (int) `UPServ_Nonce::NONCE_ONLY` or `UPServ_Nonce::NONCE_INFO_ARRAY`  
+> (int) `Nonce::NONCE_ONLY` or `Nonce::NONCE_INFO_ARRAY`
 
 ___
 ### upserv_clear_nonces_query
@@ -1381,7 +1381,7 @@ ___
 ### upserv_schedule_webhook_is_instant
 
 ```php
-apply_filters( 'upserv_schedule_webhook_is_instant', bool $instant, array $payload, string $event_type );
+apply_filters( 'upserv_schedule_webhook_is_instant', bool $instant, string $event_type, array $params );
 ```
 
 **Description**
@@ -1391,9 +1391,9 @@ Filter whether to send the webhook notification immediately.
 `$instant`
 > (bool) whether to send the notification immediately
 
-`$payload`
-> (array) the payload of the event
-
 `$event_type`
 > (string) the type of event
+
+`$params`
+> (array) the target URL, secret, encoded body, and originating action passed to the webhook callback
 ___

@@ -114,7 +114,7 @@ class Remote_Sources_Manager {
 	}
 
 	/**
-	 * Register remote check scheduled hooks
+	 * Register callbacks for scheduled remote checks.
 	 *
 	 * @since 1.0.0
 	 */
@@ -151,12 +151,11 @@ class Remote_Sources_Manager {
 				add_action( 'upserv_check_remote_' . $slug, $action_hook, 10, 3 );
 
 				/**
-				 * Fired after a remote check action has been registered for a package.
-				 * Fired during client update API request.
+				 * Fired during scheduler initialization after a remote check callback has been registered.
 				 *
 				 * @param string $package_slug    The slug of the package for which an action has been registered
 				 * @param string $scheduled_hook  The event hook the action has been registered to
-				 * @param string $action_hook     The action that has been registered
+				 * @param callable $action_hook    The callback that has been registered.
 				 */
 				do_action(
 					'upserv_registered_check_remote_schedule',
@@ -207,8 +206,7 @@ class Remote_Sources_Manager {
 				Scheduler::get_instance()->unschedule_all_actions( $scheduled_hook );
 
 				/**
-				 * Fired after a remote check schedule event has been unscheduled for a package.
-				 * Fired during client update API request.
+				 * Fired while disabling VCS schedules after a remote check event has been unscheduled.
 				 *
 				 * @param string $package_slug    The slug of the package for which a remote check event has been unscheduled
 				 * @param string $scheduled_hook  The remote check event hook that has been unscheduled
@@ -253,7 +251,7 @@ class Remote_Sources_Manager {
 	/**
 	 * Add admin tab states
 	 *
-	 * @param array $states List of admin tab states.
+	 * @param array  $states List of admin tab states.
 	 * @param string $page Current admin page.
 	 * @return array Modified list of admin tab states.
 	 * @since 1.0.0
@@ -500,8 +498,7 @@ class Remote_Sources_Manager {
 			Scheduler::get_instance()->unschedule_all_actions( $hook, $params );
 
 			/**
-			 * Fired after a remote check schedule event has been unscheduled for a package.
-			 * Fired during client update API request.
+			 * Fired while rescheduling a package after its previous remote check event is removed.
 			 *
 			 * @param string $package_slug    The slug of the package for which a remote check event has been unscheduled
 			 * @param string $scheduled_hook  The remote check event hook that has been unscheduled
@@ -516,10 +513,9 @@ class Remote_Sources_Manager {
 			);
 
 			/**
-			 * Fired after a remote check event has been scheduled for a package.
-			 * Fired during client update API request.
+			 * Fired while rescheduling a package after its new remote check event is created.
 			 *
-			 * @param bool   $result         Whether the event was scheduled
+			 * @param bool|int $result       The Action Scheduler ID or WordPress cron result.
 			 * @param string $package_slug   The slug of the package for which the event was scheduled
 			 * @param int    $timestamp      Timestamp for when to run the event the first time after it's been scheduled
 			 * @param string $frequency      Frequency at which the event would be ran
@@ -756,7 +752,7 @@ class Remote_Sources_Manager {
 		set_transient( 'upserv_flush', 1, 60 );
 
 		/**
-		 * Fired after the options in "Remote Sources" have been updated.
+		 * Fired after the "Remote Sources" options form has been processed.
 		 *
 		 * @param array|string $result The result of the options update, an array of errors or a success message
 		 */
@@ -768,9 +764,9 @@ class Remote_Sources_Manager {
 	/**
 	 * Filter JSON input
 	 *
-	 * @param array $inputs JSON input data.
+	 * @param array  $inputs JSON input data.
 	 * @param string $option_name Option name.
-	 * @param array $errors List of errors.
+	 * @param array  $errors List of errors, passed by reference.
 	 * @return array Filtered JSON input data.
 	 * @since 1.0.0
 	 */
@@ -900,7 +896,7 @@ class Remote_Sources_Manager {
 	}
 
 	/**
-	 * Get package slugs
+	 * Get whitelisted package slugs associated with a VCS URL.
 	 *
 	 * @param string $vcs_url VCS URL.
 	 * @return array List of package slugs.

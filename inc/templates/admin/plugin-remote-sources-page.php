@@ -1,4 +1,17 @@
-<?php if ( ! defined( 'ABSPATH' ) ) {
+<?php
+/**
+ * Remote sources administration page template.
+ *
+ * @package UpdatePulse_Server
+ *
+ * @var string $header               Rendered admin settings header.
+ * @var array  $options              Remote source settings.
+ * @var string $packages_dir         Package storage directory.
+ * @var array  $registered_schedules Registered WordPress schedules.
+ * @var array  $schedules            Available schedules keyed by display name.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 } ?>
 <div class="wrap upserv-wrap">
