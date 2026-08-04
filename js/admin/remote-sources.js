@@ -197,6 +197,10 @@ jQuery(document).ready(function ($) {
             data[id].type = 'gitea';
             data[id].self_hosted = false;
             item.find('.service .gitea').removeClass('hidden');
+        } else if (service && service[1] === 'gitee.com') {
+            data[id].type = 'gitee';
+            data[id].self_hosted = false;
+            item.find('.service .gitee').removeClass('hidden');
         } else {
             data[id].type = data[id].type ? data[id].type : 'undefined';
             data[id].self_hosted = true;

@@ -436,6 +436,10 @@ class Packages_Table extends WP_List_Table {
 				return 'bitbucket';
 			case 'gitea':
 				return 'gitea';
+			case 'forgejo':
+				return 'forgejo';
+			case 'gitee':
+				return 'gitee';
 			default:
 				return '';
 		}

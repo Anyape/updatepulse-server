@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WP_Error;
+use InvalidArgumentException;
 use Anyape\UpdatePulse\Server\Manager\Data_Manager;
 use Anyape\UpdatePulse\Server\API\Update_API;
 use Anyape\UpdatePulse\Server\Scheduler\Scheduler;
@@ -357,10 +358,25 @@ class Remote_Sources_Manager {
 
 		$url         = $data['upserv_vcs_url'];
 		$credentials = $data['upserv_vcs_credentials'];
-		$vcs_type    = $data['upserv_vcs_type'];
+		$vcs_type    = sanitize_key( $data['upserv_vcs_type'] );
 		$service     = upserv_get_vcs_name( $vcs_type, 'edit' );
 		$api_class   = $service ? 'Anyape\PackageUpdateChecker\Vcs\\' . $service . 'Api' : false;
-		$test_result = $api_class::test( $url, $credentials );
+
+		if ( ! $api_class || ! is_callable( array( $api_class, 'test' ) ) ) {
+			wp_send_json_error(
+				new WP_Error(
+					'upserv_invalid_vcs_type',
+					__( 'Unsupported Version Control System provider.', 'updatepulse-server' )
+				),
+				400
+			);
+		}
+
+		try {
+			$test_result = $api_class::test( $url, $credentials );
+		} catch ( InvalidArgumentException $exception ) {
+			$test_result = false;
+		}
 
 		if ( true === $test_result ) {
 			$result = array( __( 'Version Control System was reached sucessfully.', 'updatepulse-server' ) );
@@ -656,7 +672,9 @@ class Remote_Sources_Manager {
 				$to_update = upserv_set_option( $key, $value );
 			}
 
-			upserv_update_options( $to_update );
+			if ( isset( $to_update ) ) {
+				upserv_update_options( $to_update );
+			}
 		}
 
 		if ( ! empty( $errors ) ) {
@@ -777,9 +795,10 @@ class Remote_Sources_Manager {
 				continue;
 			}
 
-			$type = filter_var( $values['type'], FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$type            = sanitize_key( $values['type'] );
+			$supported_types = array( 'github', 'gitlab', 'bitbucket', 'gitea', 'forgejo', 'gitee' );
 
-			if ( ! $type || 'undefined' === $type ) {
+			if ( ! in_array( $type, $supported_types, true ) ) {
 				$error_array[] = sprintf(
 					// translators: %d is the index of the item in the list
 					__( 'Undefined VCS Type for item at index %d', 'updatepulse-server' ),
@@ -789,7 +808,28 @@ class Remote_Sources_Manager {
 				continue;
 			}
 
-			$self_hosted       = intval( filter_var( $values['self_hosted'], FILTER_VALIDATE_BOOLEAN ) );
+			$self_hosted = intval( filter_var( $values['self_hosted'], FILTER_VALIDATE_BOOLEAN ) );
+
+			if ( 'forgejo' === $type && ! $self_hosted ) {
+				$error_array[] = sprintf(
+					// translators: %d is the index of the item in the list.
+					__( 'Forgejo must be configured as self-hosted for item at index %d', 'updatepulse-server' ),
+					$index
+				);
+
+				continue;
+			}
+
+			if ( 'gitee' === $type && 'gitee.com' !== strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) ) {
+				$error_array[] = sprintf(
+					// translators: %d is the index of the item in the list.
+					__( 'Gitee URLs must use gitee.com for item at index %d', 'updatepulse-server' ),
+					$index
+				);
+
+				continue;
+			}
+
 			$credentials       = filter_var( $values['credentials'], FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$filter_packages   = intval( filter_var( $values['filter_packages'], FILTER_VALIDATE_BOOLEAN ) );
 			$check_frequency   = filter_var( $values['check_frequency'], FILTER_SANITIZE_FULL_SPECIAL_CHARS );
