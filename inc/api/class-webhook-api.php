@@ -281,38 +281,40 @@ class Webhook_API {
 				$hook   = 'upserv_webhook';
 				$params = array( $info['url'], $info['secret'], $body, current_action() );
 
+				/**
+				 * Filter whether to send the webhook notification immediately.
+				 *
+				 * @param bool   $instant    Whether to send the notification immediately.
+				 * @param array  $payload    The payload of the event.
+				 * @param string $event_type The type of event.
+				 * @return bool
+				 */
+				$instant = apply_filters(
+					'upserv_schedule_webhook_is_instant',
+					$instant,
+					$event_type,
+					$params
+				);
+
+				if ( $instant ) {
+					$this->fire_webhook( ...$params );
+
+					continue;
+				}
+
+				if ( function_exists( 'gzdeflate' ) ) {
+					$body = base64_encode( gzdeflate( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				} elseif ( function_exists( 'gzcompress' ) ) {
+					$body = base64_encode( gzcompress( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				}
+
+				if ( ! $body ) {
+					$body = wp_json_encode( $payload, Utils::JSON_OPTIONS );
+				}
+
+				$params[2] = $body;
+
 				if ( ! Scheduler::get_instance()->has_scheduled_action( $hook, $params ) ) {
-					/**
-					 * Filter whether to send the webhook notification immediately.
-					 *
-					 * @param bool   $instant    Whether to send the notification immediately.
-					 * @param array  $payload    The payload of the event.
-					 * @param string $event_type The type of event.
-					 * @return bool
-					 */
-					$instant = apply_filters(
-						'upserv_schedule_webhook_is_instant',
-						$instant,
-						$event_type,
-						$params
-					);
-
-					if ( $instant ) {
-						$this->fire_webhook( ...$params );
-
-						continue;
-					}
-
-					if ( function_exists( 'gzdeflate' ) ) {
-						$body = base64_encode( gzdeflate( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-					} elseif ( function_exists( 'gzcompress' ) ) {
-						$body = base64_encode( gzcompress( $body, 9 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-					}
-
-					if ( ! $body ) {
-						$body = wp_json_encode( $payload, Utils::JSON_OPTIONS );
-					}
-
 					Scheduler::get_instance()->schedule_single_action( time(), $hook, $params );
 				}
 			}

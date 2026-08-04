@@ -173,6 +173,7 @@ jQuery(document).ready(function ($) {
         var value = $('.self-hosted input[type="radio"]:checked').val();
         if (typeof value === 'undefined') value = 'undefined';
         data[id].type = value;
+        $('#upserv_vcs_type').val(value);
     };
     var updateService = function (id) {
         var service = data[id].url.match(/https?:\/\/([^\/]+)\//);
