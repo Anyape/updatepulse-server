@@ -75,7 +75,7 @@
 						</code>
 					<?php elseif ( 'vcs' === $record['metadata'][ $key ] ) : ?>
 						<code>
-							<i class="<?php echo esc_attr( $record['vcs']['class'] ); ?>"></i><span class="identifier">
+							<?php echo upserv_get_brand_icon( $record['vcs']['brand'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><span class="identifier">
 								<?php echo esc_html( $record['vcs']['identifier'] ); ?>
 							</span>
 						</code>

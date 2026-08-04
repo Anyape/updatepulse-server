@@ -8,6 +8,15 @@
     font-size: 1.25em;
 }
 
+.upserv-brand-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+    vertical-align: -0.125em;
+    fill: currentColor;
+}
+
 .upserv-wrap .form-table,
 .upserv-wrap .help-content {
   max-width: 50rem;

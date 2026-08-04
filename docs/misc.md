@@ -14,6 +14,7 @@ UpdatePulse Server provides an API and offers a series of functions, actions and
     * [WP CLI](#wp-cli)
     * [Consuming Webhooks](#consuming-webhooks)
     * [Functions](#functions)
+        * [upserv\_get\_brand\_icon](#upserv_get_brand_icon)
         * [upserv\_is\_doing\_api\_request](#upserv_is_doing_api_request)
         * [upserv\_is\_doing\_webhook\_api\_request](#upserv_is_doing_webhook_api_request)
         * [upserv\_init\_nonce\_auth](#upserv_init_nonce_auth)
@@ -577,6 +578,25 @@ ___
 
 The functions listed below are made publicly available by the plugin for theme and plugin developers. They can be used after the action `plugins_loaded` has been fired, or in a `plugins_loaded` action (just make sure the priority is above `-99`).  
 Although the main classes can theoretically be instantiated without side effect if the `$hook_init` parameter is set to `false`, it is recommended to use only the following functions as there is no guarantee future updates won't introduce changes of behaviors.
+___
+### upserv_get_brand_icon
+
+```php
+upserv_get_brand_icon( string $brand );
+```
+
+**Description**
+
+Return accessible, decorative SVG markup for an UpdatePulse-supported VCS brand. Every icon uses a normalized `0 0 512 512` view box and `currentColor`, allowing it to inherit the surrounding text color.
+
+**Parameters**
+
+`$brand`
+> (string) one of `github`, `gitlab`, `gitlab-self-hosted`, `gitea`, or `bitbucket`
+
+**Return value**
+> (string) SVG markup for a supported brand, or an empty string when the brand is unsupported
+
 ___
 ### upserv_is_doing_api_request
 

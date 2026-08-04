@@ -368,10 +368,6 @@ class UPServ {
 			'path' => UPSERV_PLUGIN_PATH . 'css/admin/main' . upserv_assets_suffix() . '.css',
 			'uri'  => UPSERV_PLUGIN_URL . 'css/admin/main' . upserv_assets_suffix() . '.css',
 		);
-		$styles['fa_brands']   = array(
-			'path' => UPSERV_PLUGIN_PATH . 'css/fontawesome/css/brands' . upserv_assets_suffix() . '.css',
-			'uri'  => UPSERV_PLUGIN_URL . 'css/fontawesome/css/brands' . upserv_assets_suffix() . '.css',
-		);
 		$styles['fa_solid']    = array(
 			'path' => UPSERV_PLUGIN_PATH . 'css/fontawesome/css/solid' . upserv_assets_suffix() . '.css',
 			'uri'  => UPSERV_PLUGIN_URL . 'css/fontawesome/css/solid' . upserv_assets_suffix() . '.css',
@@ -554,7 +550,9 @@ class UPServ {
 	public function upserv_get_admin_template_args( $args, $template_name ) {
 
 		if ( preg_match( '/^plugin-.*-page\.php$/', $template_name ) ) {
-			$args['header'] = $this->display_settings_header( wp_cache_get( 'settings_notice', 'updatepulse-server' ) );
+			ob_start();
+			$this->display_settings_header( wp_cache_get( 'settings_notice', 'updatepulse-server' ) );
+			$args['header'] = (string) ob_get_clean();
 		}
 
 		return $args;

@@ -1,421 +1,410 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Main config
-DIR=$(pwd)
-PLUGINSLUG=$(basename "$DIR")
-MAINFILE="$PLUGINSLUG.php"
-# SVN user
+set -Eeuo pipefail
+
+SCRIPT_NAME="$(basename "$0")"
+START_DIR="$(pwd -P)"
+readonly SCRIPT_NAME
+readonly START_DIR
+
 SVNUSER=""
-# Verbose mode
-VERBOSE=false
-# Deploy mode
-DEPLOY=false
-# Skip assets
-SKIP_ASSETS=false
-# Script name
-SCRIPT_NAME=$(basename "$0")
-# Git branch
+DIR=""
+PLUGINSLUG=""
+MAINFILE=""
 GITBRANCH="main"
+COMMITMSG=""
+DEPLOY=false
+VERBOSE=false
+SKIP_ASSETS=false
+SKIP_GITHUB=false
+TEMP_ROOT=""
+CURRENTBRANCH=""
+TAG_CREATED=false
+TAG_PUSHED=false
 
-# Parse arguments
+usage() {
+	cat <<EOF
+Deploy a WordPress plugin to GitHub and the WordPress.org plugin repository.
+
+Dry-run mode is enabled by default. Use --deploy to publish.
+
+Usage:
+  ./$SCRIPT_NAME <svn-user> [options]
+
+Options:
+  -d,  --deploy                 Publish the release.
+  -v,  --verbose                Print commands before executing them.
+  -sa, --skip-assets            Do not pause for WordPress.org asset changes.
+       --skip-github            Skip GitHub release creation.
+  -b,  --branch <branch>        Release branch (default: main).
+  -m,  --message <message>      Release commit and SVN commit message.
+  -mf, --mainfile <file.php>    Main plugin file (default: <slug>.php).
+  -p,  --path <plugin-path>     Plugin Git repository (default: current directory).
+  -s,  --slug <plugin-slug>     WordPress.org plugin slug (default: directory name).
+  -h,  --help                   Show this help.
+EOF
+}
+
+die() {
+	echo "Error: $*" >&2
+	exit 1
+}
+
+warn() {
+	echo "Warning: $*" >&2
+}
+
+log_command() {
+	if $VERBOSE; then
+		printf '+'
+		printf ' %q' "$@"
+		printf '\n'
+	fi
+}
+
+run() {
+	log_command "$@"
+	"$@"
+}
+
+cleanup() {
+	local exit_code=$?
+
+	trap - EXIT INT TERM
+
+	if [[ -n "$TEMP_ROOT" && -d "$TEMP_ROOT" ]]; then
+		rm -rf -- "$TEMP_ROOT"
+	fi
+
+	if [[ $exit_code -ne 0 ]] && $TAG_CREATED && ! $TAG_PUSHED; then
+		git -C "$DIR" tag -d "$GIT_TAG" >/dev/null 2>&1 || warn "Unable to remove unpublished local tag '$GIT_TAG'."
+	fi
+
+	if [[ -n "$CURRENTBRANCH" ]]; then
+		local active_branch
+		active_branch=$(git -C "$DIR" symbolic-ref --quiet --short HEAD 2>/dev/null || true)
+
+		if [[ "$active_branch" != "$CURRENTBRANCH" ]]; then
+			if ! git -C "$DIR" checkout --quiet "$CURRENTBRANCH"; then
+				warn "Unable to restore branch '$CURRENTBRANCH'."
+			fi
+		fi
+	fi
+
+	exit "$exit_code"
+}
+
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
+require_value() {
+	local option="$1"
+	local value="${2:-}"
+
+	if [[ -z "$value" || "$value" == -* ]]; then
+		die "Missing value for $option."
+	fi
+}
+
 while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -d|--deploy)
-            DEPLOY=true
-            shift
-            ;;
-        -v|--verbose)
-            VERBOSE=true
-            shift
-            ;;
-        -sa|--skip-assets)
-            SKIP_ASSETS=true
-            shift
-            ;;
-        -b|--branch)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Error: Missing value for --branch option."
-                exit 1
-            fi
-            GITBRANCH="$2"
-            shift 2
-            ;;
-        -mf|--mainfile)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Error: Missing value for --mainfile option."
-                exit 1
-            fi
-            MAINFILE="$2"
-            shift 2
-            ;;
-        -p|--path)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Error: Missing value for --path option."
-                exit 1
-            fi
-            DIR="$2"
-            shift 2
-            ;;
-        -s|--slug)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Error: Missing value for --slug option."
-                exit 1
-            fi
-            PLUGINSLUG="$2"
-            shift 2
-            ;;
-        -h|--help)
-            echo "Deploy WordPress plugin to the official repository."
-            echo "Dry-run mode is enabled by default. Use -d or --deploy to deploy."
-            echo "Usage: ./$SCRIPT_NAME <svn-user> [-d|--deploy] [-v|--verbose] [-sa|--skip-assets] [-b|--branch <branch>] [-mf|--mainfile <mainfile.php>] [-p|--path <plugin-path>] [-s|--slug <plugin-slug>]"
-            exit 0
-            ;;
-        *)
-            # Assume the first non-flag argument is SVNUSER
-            if [[ -z "$SVNUSER" ]]; then
-                SVNUSER="$1"
-                shift
-            else
-                echo "Error: Unexpected argument '$1'."
-                exit 1
-            fi
-            ;;
-    esac
+	case "$1" in
+		-d|--deploy)
+			DEPLOY=true
+			shift
+			;;
+		-v|--verbose)
+			VERBOSE=true
+			shift
+			;;
+		-sa|--skip-assets)
+			SKIP_ASSETS=true
+			shift
+			;;
+		--skip-github)
+			SKIP_GITHUB=true
+			shift
+			;;
+		-b|--branch)
+			require_value "$1" "${2:-}"
+			GITBRANCH="$2"
+			shift 2
+			;;
+		-m|--message)
+			require_value "$1" "${2:-}"
+			COMMITMSG="$2"
+			shift 2
+			;;
+		-mf|--mainfile)
+			require_value "$1" "${2:-}"
+			MAINFILE="$2"
+			shift 2
+			;;
+		-p|--path)
+			require_value "$1" "${2:-}"
+			DIR="$2"
+			shift 2
+			;;
+		-s|--slug)
+			require_value "$1" "${2:-}"
+			PLUGINSLUG="$2"
+			shift 2
+			;;
+		-h|--help)
+			usage
+			exit 0
+			;;
+		--)
+			shift
+			break
+			;;
+		-*)
+			die "Unknown option '$1'."
+			;;
+		*)
+			if [[ -n "$SVNUSER" ]]; then
+				die "Unexpected argument '$1'."
+			fi
+
+			SVNUSER="$1"
+			shift
+			;;
+	esac
 done
 
-# Validate required parameter
-if [[ -z "$SVNUSER" ]]; then
-    echo "Error: Missing required parameter <svn-user>."
-    echo "Usage: ./$SCRIPT_NAME <svn-user> [-d|--deploy] [-v|--verbose] [-sa|--skip-assets] [-b|--branch <branch>] [-mf|--mainfile <mainfile.php>] [-p|--path <plugin-path>] [-s|--slug <plugin-slug>]"
-    exit 1
-fi
+[[ $# -eq 0 ]] || die "Unexpected argument '$1'."
+[[ -n "$SVNUSER" ]] || die "Missing required parameter <svn-user>."
 
-# Debug output (optional, for testing purposes)
-if [[ "$VERBOSE" == true ]]; then
-    echo "SVNUSER: $SVNUSER"
-    echo "DEPLOY: $DEPLOY"
-    echo "VERBOSE: $VERBOSE"
-    echo "SKIP_ASSETS: $SKIP_ASSETS"
-    echo "GITBRANCH: $GITBRANCH"
-    echo "MAINFILE: $MAINFILE"
-    echo "DIR: $DIR"
-    echo "PLUGINSLUG: $PLUGINSLUG"
-fi
+DIR="${DIR:-$START_DIR}"
+[[ -d "$DIR" ]] || die "Plugin path '$DIR' does not exist."
+DIR="$(cd "$DIR" && pwd -P)"
+PLUGINSLUG="${PLUGINSLUG:-$(basename "$DIR")}"
+MAINFILE="${MAINFILE:-$PLUGINSLUG.php}"
 
-# Git config
-GITPATH="$DIR/"
-# SVN config
-SVNPATH="/tmp/$PLUGINSLUG" # path to a temp SVN repo. No trailing slash required and don't add trunk.
-SVNURL="http://plugins.svn.wordpress.org/$PLUGINSLUG/" # Remote SVN repo on wordpress.org, with no trailing slash
+[[ "$PLUGINSLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "Invalid plugin slug '$PLUGINSLUG'."
+[[ "$MAINFILE" != */* && "$MAINFILE" == *.php ]] || die "Main plugin file must be a PHP filename in the plugin root."
 
-# Function to handle command errors
-handle_error() {
-    local cmd="$1"
-    local exit_code="$2"
-    echo "Error: $cmd command failed with exit code $exit_code"
-    cd "$GITPATH" || {
-        echo "Error: Unable to change directory to $GITPATH"
-        exit 1
-    }
-    git checkout "$CURRENTBRANCH"
-    exit 1
+readonly GITPATH="$DIR"
+readonly SVNURL="https://plugins.svn.wordpress.org/$PLUGINSLUG"
+readonly DISTIGNORE="$GITPATH/.distignore"
+
+for command in git svn rsync tar zip awk grep; do
+	command -v "$command" >/dev/null 2>&1 || die "Command '$command' not found."
+done
+
+[[ -f "$GITPATH/readme.txt" ]] || die "Missing '$GITPATH/readme.txt'."
+[[ -f "$GITPATH/$MAINFILE" ]] || die "Missing '$GITPATH/$MAINFILE'."
+[[ -f "$DISTIGNORE" ]] || die "Missing distribution manifest '$DISTIGNORE'."
+
+GIT_TOPLEVEL=$(git -C "$GITPATH" rev-parse --show-toplevel 2>/dev/null) || die "'$GITPATH' is not a Git repository."
+[[ "$GIT_TOPLEVEL" == "$GITPATH" ]] || die "Plugin path must be the Git repository root ('$GIT_TOPLEVEL')."
+
+CURRENTBRANCH=$(git -C "$GITPATH" symbolic-ref --quiet --short HEAD) || die "Deployments cannot start from a detached HEAD."
+git -C "$GITPATH" show-ref --verify --quiet "refs/heads/$GITBRANCH" || die "Branch '$GITBRANCH' does not exist locally."
+
+read_versions() {
+	local readme_version
+	local plugin_version
+
+	readme_version=$(awk '
+		/^Stable tag:[[:space:]]*/ {
+			value = $0
+			sub( /^Stable tag:[[:space:]]*/, "", value )
+			print value
+			count++
+		}
+		END { if ( 1 != count ) exit 1 }
+	' "$GITPATH/readme.txt") || die "readme.txt must contain exactly one Stable tag."
+
+	plugin_version=$(awk '
+		/^[[:space:]]*\*?[[:space:]]*Version[[:space:]]*:/ {
+			value = $0
+			sub( /^[^:]*:[[:space:]]*/, "", value )
+			print value
+			count++
+		}
+		END { if ( 1 != count ) exit 1 }
+	' "$GITPATH/$MAINFILE") || die "$MAINFILE must contain exactly one Version header."
+
+	[[ -n "$readme_version" && "$readme_version" == "$plugin_version" ]] || die "Versions in readme.txt ('$readme_version') and $MAINFILE ('$plugin_version') do not match."
+	[[ "$readme_version" =~ ^[0-9]+(\.[0-9]+)+([.-][0-9A-Za-z.-]+)?$ ]] || die "Invalid release version '$readme_version'."
+
+	VERSION="$readme_version"
+	GIT_TAG="v$VERSION"
+	SVN_TAG="$VERSION"
 }
 
-# Function to execute or echo commands based on deploy mode
-execute_or_echo() {
-    local command="$1"
-    shift
-    local args=("$@")
+read_versions
+readonly PLANNED_VERSION="$VERSION"
+readonly PLANNED_GIT_TAG="$GIT_TAG"
 
-    # Determine the command type (e.g., git, svn)
-    case "$command" in
-        git)
-            # In dry-run mode, allow all git commands except commit, tag, push
-            if ! $DEPLOY && [[ "${args[0]}" == "commit" || "${args[0]}" == "tag" || "${args[0]}" == "push" ]]; then
-                echo "[DRY-RUN] $command ${args[*]}"
-            else
-                if $VERBOSE; then
-                    echo "$command ${args[*]}"
-                fi
-                "$command" "${args[@]}"
-                local exit_code=$?
-                if [[ $exit_code -ne 0 ]]; then
-                    # Make exception for git commit when there's nothing to commit
-                    if [[ "$command" == "git" && "${args[0]}" == "commit" && $exit_code -eq 1 ]]; then
-                        # Check if the error is about "nothing to commit"
-                        if git status | grep -q "nothing to commit"; then
-                            echo "Notice: Nothing to commit, continuing with deployment"
-                            return 0
-                        fi
-                    fi
-                    handle_error "$command ${args[*]}" "$exit_code"
-                fi
-            fi
-            ;;
-        svn)
-            # In dry-run mode, allow all svn commands except commit
-            if ! $DEPLOY && [[ "${args[0]}" == "commit" ]]; then
-                echo "[DRY-RUN] $command ${args[*]}"
-            else
-                if $VERBOSE; then
-                    echo "$command ${args[*]}"
-                fi
-                "$command" "${args[@]}"
-                local exit_code=$?
-                if [[ $exit_code -ne 0 ]]; then
-                    handle_error "$command ${args[*]}"
-                fi
-            fi
-            ;;
-        gh)
-        # In dry-run mode, disallow all gh commands
-            if ! $DEPLOY; then
-                echo "[DRY-RUN] gh ${args[*]}"
-            else
-                if $VERBOSE; then
-                    echo "gh ${args[*]}"
-                fi
-                "$command" "${args[@]}"
-                local exit_code=$?
-                if [[ $exit_code -ne 0 ]]; then
-                    handle_error "$command ${args[*]}"
-                fi
-            fi
-            ;;
-        *)
-        # For other commands, actually execute them
-            if $VERBOSE; then
-                echo "$command ${args[*]}"
-            fi
-            "$command" "${args[@]}"
-            local exit_code=$?
-            if [[ $exit_code -ne 0 ]]; then
-                handle_error "$command ${args[*]}"
-            fi
-        ;;
-    esac
-}
+LOCAL_BRANCH_COMMIT=$(git -C "$GITPATH" rev-parse "refs/heads/$GITBRANCH")
+REMOTE_BRANCH_LINE=$(git -C "$GITPATH" ls-remote --heads origin "refs/heads/$GITBRANCH") || die "Unable to read origin/$GITBRANCH."
+REMOTE_BRANCH_COMMIT=${REMOTE_BRANCH_LINE%%[[:space:]]*}
+[[ -n "$REMOTE_BRANCH_COMMIT" ]] || die "Remote branch 'origin/$GITBRANCH' does not exist."
+[[ "$LOCAL_BRANCH_COMMIT" == "$REMOTE_BRANCH_COMMIT" ]] || die "Local '$GITBRANCH' does not match origin/$GITBRANCH. Update it before releasing."
+
+git -C "$GITPATH" show-ref --tags --quiet --verify "refs/tags/$GIT_TAG" && die "Git tag '$GIT_TAG' already exists locally."
+
+set +e
+git -C "$GITPATH" ls-remote --exit-code --tags origin "refs/tags/$GIT_TAG" >/dev/null 2>&1
+REMOTE_TAG_STATUS=$?
+set -e
+
+if [[ $REMOTE_TAG_STATUS -eq 0 ]]; then
+	die "Git tag '$GIT_TAG' already exists on origin."
+elif [[ $REMOTE_TAG_STATUS -ne 2 ]]; then
+	die "Unable to check Git tag '$GIT_TAG' on origin."
+fi
+
+SVN_TAGS=$(svn list "$SVNURL/tags/") || die "Unable to read WordPress.org tags at '$SVNURL/tags/'."
+if grep -Fqx "$SVN_TAG/" <<< "$SVN_TAGS"; then
+	die "WordPress.org tag '$SVN_TAG' already exists."
+fi
+
+CREATE_GITHUB_RELEASE=false
+if ! $SKIP_GITHUB; then
+	if ! command -v gh >/dev/null 2>&1; then
+		warn "Command 'gh' not found; the GitHub release will be skipped."
+	elif ! gh auth status >/dev/null 2>&1; then
+		warn "GitHub CLI is not authenticated; the GitHub release will be skipped."
+	else
+		CREATE_GITHUB_RELEASE=true
+	fi
+fi
 
 echo ".........................................."
-echo ""
-
+echo
 if $DEPLOY; then
-    echo "Deployment"
+	echo "Deployment"
 else
-    echo "Dry-run - use --deploy to deploy"
+	echo "Dry run"
 fi
-
-echo ""
+echo
+echo "Plugin:             $PLUGINSLUG"
+echo "Version:            $VERSION"
+echo "Git tag:            $GIT_TAG"
+echo "Release branch:     $GITBRANCH"
+echo "Starting branch:    $CURRENTBRANCH"
+echo "Plugin path:        $GITPATH"
+echo "WordPress.org URL:  $SVNURL"
+echo "GitHub release:     $CREATE_GITHUB_RELEASE"
+echo "Update assets:      $(! $SKIP_ASSETS && echo true || echo false)"
+echo
+echo "Working tree payload to commit on '$GITBRANCH':"
+git -C "$GITPATH" status --short
 echo ".........................................."
-echo ""
 
-# Check if subversion is installed before running
-if ! which svn >/dev/null; then
-    echo "Command 'svn' not found. Exiting."
-    exit 1
-fi
-
-# Check version in readme.txt is the same as plugin file
-NEWVERSION1=$(grep "^Stable tag:" "$GITPATH"/readme.txt | awk -F' ' '{print $NF}')
-NEWVERSION2=$(grep -E "^[[:space:]]*\*?[[:space:]]*Version:" "$GITPATH"/"$MAINFILE" | awk -F' ' '{print $NF}')
-echo "readme.txt version: $NEWVERSION1"
-echo "$MAINFILE version: $NEWVERSION2"
-
-# Check if version in readme.txt & $MAINFILE don't match
-if [ "$NEWVERSION1" != "$NEWVERSION2" ]; then
-    echo "Version in readme.txt & $MAINFILE don't match. Exiting."
-    exit 1
-fi
-
-# Check if git tag exists
-if git show-ref --tags --quiet --verify -- "refs/tags/$NEWVERSION1"; then
-    echo "Version $NEWVERSION1 already exists as git tag. Exiting."
-    exit 1
-fi
-
-# Prompt for commit message
-echo -e "Enter a commit message for this new version: \c"
-read -r COMMITMSG
-
-# Check that GITBRANCH exists
-if ! git show-ref --verify --quiet "refs/heads/$GITBRANCH"; then
-    echo "Branch $GITBRANCH does not exist. Exiting."
-    exit 1
-fi
-
-# If gh cli is installed, check if user is authenticated
-if which gh > /dev/null; then
-    # If the user is not authenticated, instruct to run 'gh auth login' and exit
-    if ! gh auth status > /dev/null 2>&1; then
-        echo "You are not authenticated. Please run 'gh auth login'. Exiting."
-        exit 1
-    fi
-fi
-
-# Keep the current branch so that we can switch back to it later
-CURRENTBRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-# Switch to $GITBRANCH branch
-execute_or_echo git checkout "$GITBRANCH"
-
-# Commit changes
-execute_or_echo git commit -am "$COMMITMSG"
-
-# Tag new version in git
-execute_or_echo git tag -a "$NEWVERSION1" -m "Tagging version $NEWVERSION1"
-
-# Push changes to origin
-execute_or_echo git push origin "$GITBRANCH"
-execute_or_echo git push origin "$GITBRANCH" --tags
-
-# check if gh cli is installed
-if which gh > /dev/null; then
-    # Create a GitHub release using the GitHub API
-    echo "Creating GitHub release for tag $NEWVERSION1..."
-
-    # Define the GitHub repository owner and name
-    GITHUB_OWNER=$(git config --get remote.origin.url | sed -E 's#(https://github.com|git@github.com:)([^/]+)/.*#\2#')
-    GITHUB_REPO=$(git config --get remote.origin.url | sed -E 's#(https://github.com|git@github.com:)[^/]+/([^/]+).git#\2#')
-    # Define the release path
-    RELEASEPATH="/tmp/$PLUGINSLUG-release/"
-    # Define the zip file name
-    ZIPFILE="$PLUGINSLUG.zip"
-
-    # Delete the release path if it doesn't exist
-    if [ -d "$RELEASEPATH" ]; then
-        execute_or_echo rm -fr "$RELEASEPATH"
-    fi
-
-    # Create the release path
-    execute_or_echo mkdir -p "$RELEASEPATH"
-
-    # Create a zip file of the plugin, excluding all hidden files and *.sh files
-    execute_or_echo rsync -r --exclude=".*" --exclude="*.sh" "$GITPATH" "$RELEASEPATH"
-
-    # Use tar to create the zip file
-    execute_or_echo tar -czf "/tmp/$ZIPFILE" -C "$RELEASEPATH" .
-
-    # Delete the release path
-    execute_or_echo rm -fr "$RELEASEPATH"
-
-    # use gh cli to create a release
-    execute_or_echo gh release create v"$NEWVERSION1" \
-        --title "Release v$NEWVERSION1" \
-        --notes "Auto-deployed from tag $NEWVERSION1" \
-        --repo "$GITHUB_OWNER/$GITHUB_REPO" \
-        "/tmp/$ZIPFILE"
-
-    # Delete the zip file
-   execute_or_echo rm -f "/tmp/$ZIPFILE"
-else
-    echo "Command 'gh' not found. Skipping GitHub release creation."
-fi
-
-# Delete the local SVN repo if it exists
-if [ -d "$SVNPATH" ]; then
-    execute_or_echo rm -fr "$SVNPATH"
-fi
-
-# Create local copy of SVN repo
-execute_or_echo svn co "$SVNURL" "$SVNPATH"
-
-#Init directories assets, tags, trunk if they do not exist
-if [ ! -d "$SVNPATH"/assets ]; then
-    execute_or_echo mkdir "$SVNPATH"/assets
-fi
-
-if [ ! -d "$SVNPATH"/tags ]; then
-    execute_or_echo mkdir "$SVNPATH"/tags
-fi
-
-if [ ! -d "$SVNPATH"/trunk ]; then
-    execute_or_echo mkdir "$SVNPATH"/trunk
-fi
-
-# Clear SVN repo trunk only if it is not empty
-if [ -n "$(ls -A "$SVNPATH"/trunk/ 2>/dev/null)" ]; then
-    execute_or_echo svn rm "$SVNPATH"/trunk/*
-else
-    echo "Trunk is already empty. Skipping removal."
-fi
-
-# Export HEAD of branch from git to SVN trunk
-execute_or_echo git checkout-index -a -f --prefix="$SVNPATH"/trunk/
-
-# Ignore files
-execute_or_echo svn propset svn:ignore "*.sh
-.DS_Store
-.vscode
-.git
-.gitignore" "$SVNPATH/trunk/"
-
-# Add only readme.txt to SVN trunk
-execute_or_echo cd "$SVNPATH"/trunk/
-execute_or_echo svn add readme.txt
-
-# Create new SVN tag
-execute_or_echo cd "$SVNPATH"
-
-# Check if the tag already exists
-if svn list "$SVNURL"/tags/ | grep -q "$NEWVERSION1"; then
-
-    # Switch back to the original branch
-    execute_or_echo cd "$GITPATH"
-    execute_or_echo git checkout "$CURRENTBRANCH"
-
-    echo "Tag $NEWVERSION1 already exists. Exiting."
-
-    # Clean up temporary directory
-    execute_or_echo rm -fr "${SVNPATH:?}/"
-
-    exit 1
-fi
-
-execute_or_echo svn copy trunk tags/"$NEWVERSION1"
-
-# Add all new files in the tag folder
-execute_or_echo cd "$SVNPATH"/tags/"$NEWVERSION1"
-execute_or_echo bash -c "
-    svn status |
-    grep '^?' |
-    awk '{print \$2}' |
-    xargs -I {} svn add {}
-"
-
-if ! $SKIP_ASSETS; then
-    # Change to the assets folder
-    execute_or_echo cd "$SVNPATH"/assets/
-
-    # Pause the script until the user presses a key
-    echo "Adjust assets in $SVNPATH/assets/ and press any key to continue..."
-    read -rn 1 -s
-
-    # Add all new files in the assets folder
-    execute_or_echo bash -c "
-        svn status |
-        grep '^?' |
-        awk '{print \$2}' |
-        xargs -I {} svn add {}
-    "
-fi
-
-# Commit trunk, tag and assets changes in one step
-execute_or_echo cd "$SVNPATH"
-execute_or_echo svn commit --username="$SVNUSER" -m "$COMMITMSG"
-
-# Go back to current directory
-execute_or_echo cd "$GITPATH"
-
-# Clean up temporary directory
-execute_or_echo rm -fr "${SVNPATH:?}/"
-
-# Switch back to the original branch
-execute_or_echo git checkout "$CURRENTBRANCH"
+git -C "$GITPATH" diff --check
+git -C "$GITPATH" diff --cached --check
 
 if ! $DEPLOY; then
-    echo "*** Dry-run complete. No changes were made. ***"
-else
-    echo "*** Deployment complete. ***"
+	echo
+	echo "Dry-run complete. No branches, tags, working copies, archives, or remote repositories were changed."
+	exit 0
 fi
 
-echo ""
+if [[ -z "$COMMITMSG" ]]; then
+	[[ -t 0 ]] || die "A commit message is required in non-interactive mode; use --message."
+	read -r -p "Release commit message: " COMMITMSG
+fi
+[[ -n "${COMMITMSG//[[:space:]]/}" ]] || die "The commit message cannot be empty."
+
+if [[ -t 0 ]]; then
+	read -r -p "Commit the payload shown above to '$GITBRANCH' and publish $GIT_TAG? [y/N] " confirmation
+	[[ "$confirmation" == "y" || "$confirmation" == "Y" ]] || die "Deployment cancelled."
+else
+	die "Interactive confirmation is required for deployment."
+fi
+
+run git -C "$GITPATH" checkout "$GITBRANCH"
+read_versions
+[[ "$VERSION" == "$PLANNED_VERSION" && "$GIT_TAG" == "$PLANNED_GIT_TAG" ]] || die "The release version changed after checking out '$GITBRANCH'."
+run git -C "$GITPATH" add -A -- .
+
+if git -C "$GITPATH" diff --cached --quiet; then
+	echo "Notice: Nothing to commit; releasing the current '$GITBRANCH' HEAD."
+else
+	run git -C "$GITPATH" commit -m "$COMMITMSG"
+fi
+
+RELEASE_COMMIT=$(git -C "$GITPATH" rev-parse HEAD)
+run git -C "$GITPATH" tag -a "$GIT_TAG" -m "Release $GIT_TAG" "$RELEASE_COMMIT"
+TAG_CREATED=true
+
+TEMP_ROOT=$(mktemp -d "/tmp/${PLUGINSLUG}-deploy.XXXXXX")
+readonly SOURCE_PATH="$TEMP_ROOT/source"
+readonly DIST_ROOT="$TEMP_ROOT/dist"
+readonly DIST_PATH="$DIST_ROOT/$PLUGINSLUG"
+readonly SVN_PATH="$TEMP_ROOT/svn"
+readonly ZIP_PATH="$TEMP_ROOT/$PLUGINSLUG.zip"
+
+run mkdir -p "$SOURCE_PATH" "$DIST_PATH"
+log_command git -C "$GITPATH" archive --format=tar "$RELEASE_COMMIT"
+git -C "$GITPATH" archive --format=tar "$RELEASE_COMMIT" | tar -xf - -C "$SOURCE_PATH"
+run rsync --archive --delete --exclude-from="$DISTIGNORE" "$SOURCE_PATH/" "$DIST_PATH/"
+
+(
+	cd "$DIST_ROOT"
+	log_command zip -q -r "$ZIP_PATH" "$PLUGINSLUG"
+	zip -q -r "$ZIP_PATH" "$PLUGINSLUG"
+)
+run zip -T "$ZIP_PATH"
+
+run svn checkout "$SVNURL" "$SVN_PATH"
+run mkdir -p "$SVN_PATH/trunk" "$SVN_PATH/tags" "$SVN_PATH/assets"
+run svn add --force --parents "$SVN_PATH/trunk" "$SVN_PATH/tags" "$SVN_PATH/assets"
+run rsync --archive --delete --exclude=.svn/ "$DIST_PATH/" "$SVN_PATH/trunk/"
+
+stage_svn_changes() {
+	local target="$1"
+	local status_output
+	local status_line
+	local status
+	local path
+
+	run svn add --force "$target"
+	status_output=$(svn status "$target")
+
+	while IFS= read -r status_line; do
+		status=${status_line:0:1}
+		path=${status_line:8}
+
+		if [[ "$status" == "!" ]]; then
+			run svn rm -- "$path"
+		fi
+	done <<< "$status_output"
+}
+
+stage_svn_changes "$SVN_PATH/trunk"
+run svn copy "$SVN_PATH/trunk" "$SVN_PATH/tags/$SVN_TAG"
+
+if ! $SKIP_ASSETS; then
+	[[ -t 0 ]] || die "Asset updates require an interactive terminal; use --skip-assets when no changes are needed."
+	echo "Adjust assets in '$SVN_PATH/assets', then press any key to continue."
+	read -r -n 1 -s
+	echo
+	stage_svn_changes "$SVN_PATH/assets"
+fi
+
+echo "WordPress.org changes prepared:"
+svn status "$SVN_PATH"
+
+run git -C "$GITPATH" push --atomic origin "$GITBRANCH" "refs/tags/$GIT_TAG"
+TAG_PUSHED=true
+run svn commit "$SVN_PATH" --username "$SVNUSER" -m "$COMMITMSG"
+
+if $CREATE_GITHUB_RELEASE; then
+	if ! (
+		cd "$GITPATH"
+		run gh release create "$GIT_TAG" \
+			--target "$RELEASE_COMMIT" \
+			--title "Release $GIT_TAG" \
+			--notes "Auto-deployed from commit $RELEASE_COMMIT" \
+			"$ZIP_PATH"
+	); then
+		warn "GitHub release creation failed. Git tag '$GIT_TAG' and WordPress.org tag '$SVN_TAG' were already published."
+		exit 1
+	fi
+fi
+
+echo "Deployment complete: $GIT_TAG ($RELEASE_COMMIT)."

@@ -34,6 +34,6 @@
     display: inline-flex;
     gap: 0.5em;
     padding-left: 0.5em;
-    align-items: baseline;
+    align-items: center;
     max-width: calc(175px - 1em);
 }

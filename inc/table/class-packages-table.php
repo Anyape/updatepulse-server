@@ -230,7 +230,7 @@ class Packages_Table extends WP_List_Table {
 						'url'        => $url,
 						'identifier' => substr( $url, strrpos( $url, '/' ) + 1 ),
 						'branch'     => $vcs_config['branch'],
-						'class'      => $this->get_vcs_class( $vcs_config ),
+						'brand'      => $this->get_vcs_brand( $vcs_config ),
 					);
 				}
 
@@ -262,7 +262,7 @@ class Packages_Table extends WP_List_Table {
 					$info['vcs']['type']        = $vcs_config['type'];
 					$info['vcs']['self_hosted'] = $vcs_config['self_hosted'];
 
-					unset( $info['vcs']['class'] );
+					unset( $info['vcs']['brand'] );
 				}
 
 				$page           = ! empty( $_REQUEST['page'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['page'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -417,27 +417,27 @@ class Packages_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get VCS icon class
+	 * Get VCS icon brand
 	 *
-	 * Get the appropriate icon class for a VCS provider.
+	 * Get the appropriate brand icon identifier for a VCS provider.
 	 *
 	 * @param array $vcs_config VCS configuration
-	 * @return string CSS class for the VCS icon
+	 * @return string Brand icon identifier.
 	 * @since 1.0.0
 	 */
-	protected function get_vcs_class( $vcs_config ) {
+	protected function get_vcs_brand( $vcs_config ) {
 
 		switch ( $vcs_config['type'] ) {
 			case 'github':
-				return 'fa-brands fa-github';
+				return 'github';
 			case 'gitlab':
-				return $vcs_config['self_hosted'] ? 'fa-brands fa-square-gitlab' : 'fa-brands fa-gitlab';
+				return $vcs_config['self_hosted'] ? 'gitlab-self-hosted' : 'gitlab';
 			case 'bitbucket':
-				return 'fa-brands fa-bitbucket';
+				return 'bitbucket';
 			case 'gitea':
-				return $vcs_config['self_hosted'] ? 'fa-regular fa-mug-saucer' : 'fa-solid fa-mug-saucer';
+				return 'gitea';
 			default:
-				return 'fa-code-commit';
+				return '';
 		}
 	}
 }
