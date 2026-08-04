@@ -957,7 +957,7 @@ msgstr ""
 #: inc/templates/admin/plugin-remote-sources-page.php:124
 msgid ""
 "In the case of Github and Gitlab, a Personal Access Token (PAT); in the case "
-"of Bitckucket, an App Password."
+"of Bitbucket, an App Password."
 msgstr ""
 
 #. %1$s is <code>updatepulse.json</code>, %2$s is <code>server</code>, %3$s is <code>https://sub.domain.tld/</code>
