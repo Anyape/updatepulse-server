@@ -826,6 +826,7 @@ msgid "Gitea"
 msgstr ""
 
 #: functions.php:54
+#: inc/templates/admin/plugin-remote-sources-page.php:55
 #: inc/templates/admin/plugin-remote-sources-page.php:113
 msgid "Forgejo"
 msgstr ""
@@ -1688,10 +1689,6 @@ msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:94
 msgid "Self-hosted Gitlab"
-msgstr ""
-
-#: inc/templates/admin/plugin-remote-sources-page.php:55
-msgid "Self-hosted Forgejo"
 msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:97

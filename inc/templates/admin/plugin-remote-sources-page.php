@@ -52,7 +52,7 @@
 					<span class="gitee hidden"><?php echo upserv_get_brand_icon( 'gitee' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitee', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-gitlab hidden"><?php echo upserv_get_brand_icon( 'gitlab-self-hosted' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Gitlab', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-gitea hidden"><?php echo upserv_get_brand_icon( 'gitea' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Gitea', 'updatepulse-server' ); ?></span>
-					<span class="self-hosted-forgejo hidden"><?php echo upserv_get_brand_icon( 'forgejo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Self-hosted Forgejo', 'updatepulse-server' ); ?></span>
+					<span class="self-hosted-forgejo hidden"><?php echo upserv_get_brand_icon( 'forgejo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Forgejo', 'updatepulse-server' ); ?></span>
 					<span class="self-hosted-undefined hidden"><i class="fa-solid fa-question"></i><?php esc_html_e( 'Unknown', 'updatepulse-server' ); ?></span>
 				</div>
 				<div class="info hidden">
