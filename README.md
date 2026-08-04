@@ -168,7 +168,7 @@ In case Webhooks are not used, the following actions are available to forcefully
 ### Licenses
 
 This tab allows administrators to:
-- Entirely enable/disable package licenses. **It affects all the packages with a "Requires License" license status delivered by UpdatePulse Server.**
+- Entirely enable/disable package licenses. **It affects all the packages with a "Require License" license status delivered by UpdatePulse Server.**
 - View the list of licenses currently stored by UpdatePulse Server, with License Key, Registered Email, Status, Package Type (Plugin or Theme), Package Slug, Creation Date, Expiration Date, ID
 - Add a license
 - Edit a license
