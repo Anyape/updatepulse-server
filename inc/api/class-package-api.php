@@ -1025,7 +1025,7 @@ class Package_API {
 		if (
 			is_array( $files ) &&
 			isset( $files['file'], $files['file']['tmp_name'], $files['file']['name'] ) &&
-			sanitize_file_name( $files['file']['tmp_name'] ) === $files['file']['tmp_name'] &&
+			is_uploaded_file( $files['file']['tmp_name'] ) &&
 			sanitize_file_name( $files['file']['name'] ) === $files['file']['name']
 		) {
 			$return = array( $files['file']['tmp_name'], $files['file']['name'] );
