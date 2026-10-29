@@ -867,7 +867,8 @@ class Remote_Sources_Manager {
 	 * @since 1.0.0
 	 */
 	protected function get_package_slugs( $vcs_url ) {
-		$slugs = wp_cache_get( 'package_slugs', 'updatepulse-server' );
+		$cache_key = 'package_slugs_' . md5( trailingslashit( $vcs_url ) );
+		$slugs     = wp_cache_get( $cache_key, 'updatepulse-server' );
 
 		if ( false === $slugs ) {
 			$slugs    = array();
@@ -903,7 +904,7 @@ class Remote_Sources_Manager {
 				}
 			}
 
-			wp_cache_set( 'package_slugs', $slugs, 'updatepulse-server' );
+			wp_cache_set( $cache_key, $slugs, 'updatepulse-server' );
 		}
 
 		return $slugs;
