@@ -811,7 +811,7 @@ msgid "GitHub"
 msgstr ""
 
 #: inc/templates/admin/plugin-remote-sources-page.php:48
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 #: functions.php:48
@@ -1361,7 +1361,7 @@ msgid "On Hold"
 msgstr ""
 
 #: inc/templates/admin/plugin-help-page.php:287
-msgid "open an issue on Github"
+msgid "open an issue on GitHub"
 msgstr ""
 
 #: inc/manager/class-license-manager.php:769

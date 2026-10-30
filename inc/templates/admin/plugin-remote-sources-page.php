@@ -58,7 +58,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div><?php esc_html_e( 'Add a VCS', 'updatepulse-server' ); ?></div>
 				</div>
 				<div class="service hidden">
-					<span class="github hidden"><?php echo upserv_get_brand_icon( 'github' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Github', 'updatepulse-server' ); ?></span>
+					<span class="github hidden"><?php echo upserv_get_brand_icon( 'github' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'GitHub', 'updatepulse-server' ); ?></span>
 					<span class="bitbucket hidden"><?php echo upserv_get_brand_icon( 'bitbucket' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Bitbucket', 'updatepulse-server' ); ?></span>
 					<span class="gitlab hidden"><?php echo upserv_get_brand_icon( 'gitlab' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitlab', 'updatepulse-server' ); ?></span>
 					<span class="gitea hidden"><?php echo upserv_get_brand_icon( 'gitea' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG from an allowlisted registry. ?><?php esc_html_e( 'Gitea', 'updatepulse-server' ); ?></span>

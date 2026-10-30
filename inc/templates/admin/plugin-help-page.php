@@ -296,7 +296,7 @@ Licensed With: another-plugin-or-theme-slug</pre><br>
 			printf(
 				// translators: %1$s is a link to opening an issue, %2$s is a contact email
 				esc_html__( 'After reading the documentation, for more help on how to use UpdatePulse Server, please %1$s - bugfixes are welcome via pull requests, detailed bug reports with accurate pointers as to where and how they occur in the code will be addressed in a timely manner, and a fee will apply for any other request (if they are addressed). If and only if you found a security issue, please contact %2$s with full details for responsible disclosure.', 'updatepulse-server' ),
-				'<a target="_blank" href="https://github.com/anyape/updatepulse-server/issues">' . esc_html__( 'open an issue on Github', 'updatepulse-server' ) . '</a>',
+				'<a target="_blank" href="https://github.com/anyape/updatepulse-server/issues">' . esc_html__( 'open an issue on GitHub', 'updatepulse-server' ) . '</a>',
 				'<a href="mailto:updatepulse@anyape.com">updatepulse@anyape.com</a>',
 			);
 			?>

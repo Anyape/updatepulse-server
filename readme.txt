@@ -4,7 +4,7 @@ Donate link: https://paypal.me/frogerme
 Tags: Plugin updates, Theme updates, WordPress updates, License
 Requires at least: 6.7
 Tested up to: 6.7
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -61,7 +61,7 @@ If you wish to see your plugin added to this list, please [contact the author](m
 
 Please read the plugin FAQ, there is a lot that may help you there!
 
-UpdatePulse Server is regularly updated for compatibility, and bug reports are welcome, preferably on [Github](https://github.com/anyape/updatepulse-server/). Pull Requests from developers following the [WordPress Coding Standards](https://github.com/WordPress/WordPress-Coding-Standards) (`WordPress-Extra` ruleset) are highly appreciated and will be credited upon merge.
+UpdatePulse Server is regularly updated for compatibility, and bug reports are welcome, preferably on [GitHub](https://github.com/anyape/updatepulse-server/). Pull Requests from developers following the [WordPress Coding Standards](https://github.com/WordPress/WordPress-Coding-Standards) (`WordPress-Extra` ruleset) are highly appreciated and will be credited upon merge.
 
 In case the plugin has not been updated for a while, no panic: it simply means the compatibility flag has not been changed, and it very likely remains compatible with the latest version of WordPress. This is because it was designed with long-term compatibility in mind from the ground up.
 
@@ -138,9 +138,14 @@ This section describes how to install the plugin and get it working.
 
 == Changelog ==
 
+= 1.1.1 =
+* Fix issue [Package API: add/edit reject all file uploads (get_file() compares a sanitized absolute path)](https://github.com/Anyape/updatepulse-server/issues/16) (thanks @magicoli on GitHub)
+* Fix [Key the package slugs cache per VCS URL](https://github.com/Anyape/updatepulse-server/pull/18) (thanks @huubl on GitHub)
+* Fix [Fix release asset filter callback in GitHubApi](https://github.com/Anyape/updatepulse-server/pull/19) (thanks @huubl on GitHub)
+
 = 1.1.0 =
 * Harden Package and Nonce API authorization and constrain package archive operations to validated data directories.
-* Add Gitea (thx @relic-se on Github), Forgejo and Gitee VCS providers
+* Add Gitea (thx @relic-se on GitHub), Forgejo and Gitee VCS providers
 * Convert Bitbucket authentication from deprecated App Password to API Tokens with scopes. This is a breaking change for users using Bitbucket with App Passwords, who will need to create API Tokens and update their VCS settings.
 * AGENTS.md guidelines & Minor fixes
 * Documentation update
